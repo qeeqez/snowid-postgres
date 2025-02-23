@@ -102,7 +102,7 @@ jobs:
       - name: Build and push -- Commit
         # push commit build when not a release
         if: github.event_name != 'release'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           working-directory: ./
           file: ./images/pgmq-pg/Dockerfile
@@ -115,7 +115,7 @@ jobs:
       - name: Build and push -- Releases
         # only publish release events
         if: github.event_name == 'release'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           working-directory: ./
           file: ./images/pgmq-pg/Dockerfile
