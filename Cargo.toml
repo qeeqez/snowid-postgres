@@ -5,7 +5,7 @@ edition = "2021"
 rust-version = "1.83.0"
 
 authors = ["Maksim Sasnouski <qeeqez@gmail.com>"]
-description = "PostgreSQL extension for generating SnowID - a Snowflake-like timestamp-based distributed unique identifier"
+description = "Generate Snowflake-like IDs with speed and thread-safety in PostgreSQL"
 
 license = "MIT"
 readme = "README.md"
