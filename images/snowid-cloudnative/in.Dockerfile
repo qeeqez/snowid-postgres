@@ -25,7 +25,7 @@ COPY --from=builder /usr/lib/postgresql/@@PG_VERSION@@/lib /usr/lib/postgresql/@
 RUN apt-get update \
     && apt-get install -y ca-certificates
 
-COPY postgresql.conf /usr/share/postgresql/@@PG_VERSION@@/postgresql.conf.sample
+COPY ./images/snowid-cloudnative/postgresql.conf /usr/share/postgresql/@@PG_VERSION@@/postgresql.conf.sample
 
 USER postgres
 CMD ["postgres"]
