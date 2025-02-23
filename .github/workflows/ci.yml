@@ -143,4 +143,4 @@ jobs:
           push: true
           tags: |
             qeeqez/snowid:v${{ steps.versions.outputs.TAG_VER }}-pg${{matrix.pg}}
-            qeeqez/snowid:latest-pg${{matrix.pg}}
+            qeeqez/snowid:pg${{matrix.pg}}
