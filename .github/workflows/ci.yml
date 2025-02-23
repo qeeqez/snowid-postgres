@@ -95,14 +95,14 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Generate dockerfile from template file
-        working-directory: ./
         run: |
+          chmod +x ./public/scripts/test.sh
           ./images/snowid-cloudnative/replace-pg-version.sh ${{ matrix.pg }} ./images/snowid-cloudnative/in.Dockerfile ./images/snowid-cloudnative/Dockerfile
 
       - name: Build and push -- Commit
         # push commit build when not a release
         if: !startsWith(github.ref, 'refs/tags/')
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           file: ./images/snowid-cloudnative/Dockerfile
           context: .
