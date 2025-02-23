@@ -1,0 +1,33 @@
+[package]
+name = "snowid-postgres"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85.0"
+
+authors = ["Maksim Sasnouski <qeeqez@gmail.com>"]
+description = "PostgreSQL extension for generating SnowID - a Snowflake-like timestamp-based distributed unique identifier"
+
+license = "MIT"
+readme = "README.md"
+keywords = ["snowflake", "id", "uuid", "postgres", "pgrx"]
+categories = ["database"]
+
+documentation = "https://github.com/qeeqez/snowid-postgres"
+homepage = "https://github.com/qeeqez/snowid-postgres"
+repository = "https://github.com/qeeqez/snowid-postgres"
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = ["pg17"]
+pg17 = ["pgrx/pg17", "pgrx-tests/pg17"]
+pg16 = ["pgrx/pg16", "pgrx-tests/pg16"]
+pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
+
+[dependencies]
+pgrx = "0.12.9"
+snowid = "0.1.0"
+
+[dev-dependencies]
+pgrx-tests = "0.12.9"
