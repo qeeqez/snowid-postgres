@@ -96,7 +96,8 @@ jobs:
 
       - name: Generate dockerfile from template file
         working-directory: ./
-        run: ./images/snowid-cloudnative/replace-pg-version.sh ${{ matrix.pg }} ./images/snowid-cloudnative/in.Dockerfile ./images/snowid-cloudnative/Dockerfile
+        run: |
+          ./images/snowid-cloudnative/replace-pg-version.sh ${{ matrix.pg }} ./images/snowid-cloudnative/in.Dockerfile ./images/snowid-cloudnative/Dockerfile
 
       - name: Build and push -- Commit
         # push commit build when not a release
