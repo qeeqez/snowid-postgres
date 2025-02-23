@@ -8,7 +8,7 @@ The ordering of items is not stable, it is driven by a dependency graph.
 
 /* <begin connected objects> */
 -- src/lib.rs:55
--- pgsnowid::gen_snowid
+-- pg_snowid::gen_snowid
 CREATE  FUNCTION "gen_snowid"(
 	"table_name" TEXT /* &str */
 ) RETURNS bigint /* i64 */
@@ -19,7 +19,7 @@ AS 'MODULE_PATHNAME', 'gen_snowid_wrapper';
 
 /* <begin connected objects> */
 -- src/lib.rs:48
--- pgsnowid::get_node_id
+-- pg_snowid::get_node_id
 CREATE  FUNCTION "get_node_id"() RETURNS smallint /* i16 */
 STRICT
 LANGUAGE c /* Rust */
@@ -28,7 +28,7 @@ AS 'MODULE_PATHNAME', 'get_node_id_wrapper';
 
 /* <begin connected objects> */
 -- src/lib.rs:62
--- pgsnowid::get_snowid_timestamp
+-- pg_snowid::get_snowid_timestamp
 CREATE  FUNCTION "get_snowid_timestamp"(
 	"id" bigint, /* i64 */
 	"table_name" TEXT /* &str */
@@ -40,7 +40,7 @@ AS 'MODULE_PATHNAME', 'get_snowid_timestamp_wrapper';
 
 /* <begin connected objects> */
 -- src/lib.rs:39
--- pgsnowid::set_node_id
+-- pg_snowid::set_node_id
 CREATE  FUNCTION "set_node_id"(
 	"node" smallint /* i16 */
 ) RETURNS void

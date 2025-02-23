@@ -101,7 +101,7 @@ jobs:
         id: versions
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "TAG_VER=$(grep 'default_version' snowid.control | cut -d "'" -f 2)" >> $GITHUB_OUTPUT
+          echo "TAG_VER=$(grep 'default_version' pg_snowid.control | cut -d "'" -f 2)" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

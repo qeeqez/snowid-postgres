@@ -1104,6 +1104,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pg_snowid"
+version = "0.0.1"
+dependencies = [
+ "heapless",
+ "pgrx",
+ "pgrx-tests",
+ "snowid",
+]
+
+[[package]]
 name = "pgrx"
 version = "0.12.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1228,16 +1238,6 @@ dependencies = [
  "serde_json",
  "sysinfo",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "pgsnowid"
-version = "0.0.1"
-dependencies = [
- "heapless",
- "pgrx",
- "pgrx-tests",
- "snowid",
 ]
 
 [[package]]

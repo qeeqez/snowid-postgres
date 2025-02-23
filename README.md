@@ -49,7 +49,7 @@ cargo pgrx install
 After installation, enable the extension in your database:
 
 ```sql
-CREATE EXTENSION snowid;
+CREATE EXTENSION pg_snowid;
 ```
 
 ### Generate IDs

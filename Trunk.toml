@@ -1,5 +1,5 @@
 [extension]
-name = "snowid"
+name = "pg_snowid"
 version = "0.0.1"
 repository = "https://github.com/qeeqez/snowid-postgres"
 license = "PostgreSQL"
@@ -10,7 +10,7 @@ categories = [
     "featured",
     "data_transformations"
 ]
-loadable_libraries = [{ library_name = "snowid", requires_restart = true }]
+loadable_libraries = [{ library_name = "pg_snowid", requires_restart = true }]
 
 [build]
 postgres_version = "17"

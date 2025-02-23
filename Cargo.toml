@@ -1,5 +1,5 @@
 [package]
-name = "pgsnowid"
+name = "pg_snowid"
 version = "0.0.1"
 edition = "2021"
 rust-version = "1.83.0"
@@ -20,7 +20,7 @@ repository = "https://github.com/qeeqez/snowid-postgres"
 crate-type = ["cdylib", "lib"]
 
 [[bin]]
-name = "pgrx_embed_pgsnowid"
+name = "pgrx_embed_pg_snowid"
 path = "./src/bin/pgrx_embed.rs"
 
 [features]
