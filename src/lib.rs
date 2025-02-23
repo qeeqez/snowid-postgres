@@ -39,7 +39,7 @@ fn gen_snowid(table_name: &str) -> i64 {
         })
     });
     
-    generator.generate()
+    generator.generate().try_into().unwrap()
 }
 
 #[cfg(any(test, feature = "pg_test"))]
