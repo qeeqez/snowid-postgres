@@ -13,12 +13,9 @@ RUN apt-get update \
 	postgresql-server-dev-@@PG_VERSION@@
 
 
-# Install pgmq
-COPY . pgmq-extension
-RUN cd pgmq-extension && make && make install
-
-# install pg_partman
-RUN cd pgmq-extension && make install-pg-partman
+# Install snowid
+COPY . snowid
+RUN cd snowid && make && make install
 
 FROM postgres:@@PG_VERSION@@-bookworm
 
@@ -28,7 +25,7 @@ COPY --from=builder /usr/lib/postgresql/@@PG_VERSION@@/lib /usr/lib/postgresql/@
 RUN apt-get update \
     && apt-get install -y ca-certificates
 
-COPY ./images/pgmq-pg/postgresql.conf /usr/share/postgresql/@@PG_VERSION@@/postgresql.conf.sample
+COPY postgresql.conf /usr/share/postgresql/@@PG_VERSION@@/postgresql.conf.sample
 
 USER postgres
 CMD ["postgres"]

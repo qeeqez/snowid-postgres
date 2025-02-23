@@ -1,5 +1,5 @@
 [package]
-name = "snowid"
+name = "pgsnowid"
 version = "0.0.1"
 edition = "2021"
 rust-version = "1.83.0"
@@ -20,14 +20,14 @@ repository = "https://github.com/qeeqez/snowid-postgres"
 crate-type = ["cdylib", "lib"]
 
 [[bin]]
-name = "pgrx_embed_snowid"
+name = "pgrx_embed_pgsnowid"
 path = "./src/bin/pgrx_embed.rs"
 
 [features]
 default = ["pg17"]
-pg17 = ["pgrx/pg17", "pgrx-tests/pg17" ]
-pg16 = ["pgrx/pg16", "pgrx-tests/pg16" ]
-pg15 = ["pgrx/pg15", "pgrx-tests/pg15" ]
+pg17 = ["pgrx/pg17", "pgrx-tests/pg17"]
+pg16 = ["pgrx/pg16", "pgrx-tests/pg16"]
+pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
 pg_test = []
 
 [dependencies]
