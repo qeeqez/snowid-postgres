@@ -12,81 +12,80 @@ on:
       - created
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        pg: [ 15, 16, 17 ]
+#  build:
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        pg: [ 15, 16, 17 ]
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Install Rust toolchain
+#        uses: dtolnay/rust-toolchain@stable
+#        with:
+#          components: clippy, rustfmt
+#
+#      - name: Rust Cache
+#        uses: Swatinem/rust-cache@v2
+#        with:
+#          cache-directories: |
+#            /home/runner/.pgrx
+#
+#      - name: Setup PGRX
+#        run: |
+#          cargo install --force cargo-pgrx
+#          set -x
+#          # pgrx init can take a long time, and it re-compiles postgres even when there
+#          # is a cached version. So, we can just check for the directory and
+#          cat /home/runner/.pgrx/config.toml || true
+#          if find /home/runner/.pgrx | grep $(awk -F "=" '/${{ matrix.pg }}/ {print $2}' /home/runner/.pgrx/config.toml | tr -d '"'); then
+#            echo "Already found pgrx is initialized. Skipping 'cargo pgrx init' command."
+#          else
+#            cargo pgrx init --pg${{ matrix.pg }} download || true
+#          fi
+#
+#      - name: Check formatting
+#        run: cargo fmt --all -- --check
+#
+#      - name: Clippy
+#        run: cargo clippy -- -D warnings
+#
+#      - name: Build
+#        run: cargo build --verbose
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          cache-directories: |
-            /home/runner/.pgrx
-
-      - name: Setup PGRX
-        run: |
-          cargo install --force cargo-pgrx
-          set -x
-          # pgrx init can take a long time, and it re-compiles postgres even when there
-          # is a cached version. So, we can just check for the directory and
-          cat /home/runner/.pgrx/config.toml || true
-          if find /home/runner/.pgrx | grep $(awk -F "=" '/${{ matrix.pg }}/ {print $2}' /home/runner/.pgrx/config.toml | tr -d '"'); then
-            echo "Already found pgrx is initialized. Skipping 'cargo pgrx init' command."
-          else
-            cargo pgrx init --pg${{ matrix.pg }} download || true
-          fi
-
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
-      - name: Clippy
-        run: cargo clippy -- -D warnings
-
-      - name: Build
-        run: cargo build --verbose
-
-  publish_trunk:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: build
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        pg: [ 15, 16, 17 ]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install pg-trunk
-        shell: bash
-        run: cargo install pg-trunk
-
-      - name: Trunk build
-        run: trunk build --pg-version ${{ matrix.pg }}
-
-      - name: Trunk publish
-        env:
-          TRUNK_API_TOKEN: ${{ secrets.TRUNK_AUTH_TOKEN }}
-        run: trunk publish snowid
+#  publish_trunk:
+#    if: startsWith(github.ref, 'refs/tags/')
+#    needs: build
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        pg: [ 15, 16, 17 ]
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Install Rust toolchain
+#        uses: dtolnay/rust-toolchain@stable
+#
+#      - name: Rust Cache
+#        uses: Swatinem/rust-cache@v2
+#
+#      - name: Install pg-trunk
+#        shell: bash
+#        run: cargo install pg-trunk
+#
+#      - name: Trunk build
+#        run: trunk build --pg-version ${{ matrix.pg }}
+#
+#      - name: Trunk publish
+#        env:
+#          TRUNK_API_TOKEN: ${{ secrets.TRUNK_AUTH_TOKEN }}
+#        run: trunk publish snowid
 
   build_and_push:
     name: Build and push images
-    needs: build
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
