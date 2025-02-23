@@ -25,7 +25,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy, rustfmt, cargo-pgrx
+          components: clippy, rustfmt
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
@@ -35,6 +35,7 @@ jobs:
 
       - name: Setup PGRX
         run: |
+          cargo install --force cargo-pgrx
           set -x
           # pgrx init can take a long time, and it re-compiles postgres even when there
           # is a cached version. So, we can just check for the directory and
