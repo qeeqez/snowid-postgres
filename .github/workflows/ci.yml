@@ -14,6 +14,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pg: [ 14, 15, 16, 17 ]
 
     steps:
       - uses: actions/checkout@v4
@@ -21,10 +25,25 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy, rustfmt
+          components: clippy, rustfmt, cargo-pgrx
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
+        with:
+          cache-directories: |
+            /home/runner/.pgrx
+
+      - name: Setup PGRX
+        run: |
+          set -x
+          # pgrx init can take a long time, and it re-compiles postgres even when there
+          # is a cached version. So, we can just check for the directory and
+          cat /home/runner/.pgrx/config.toml || true
+          if find /home/runner/.pgrx | grep $(awk -F "=" '/${{ matrix.pg }}/ {print $2}' /home/runner/.pgrx/config.toml | tr -d '"'); then
+            echo "Already found pgrx is initialized. Skipping 'cargo pgrx init' command."
+          else
+            cargo pgrx init --pg${{ matrix.pg }} download || true
+          fi
 
       - name: Check formatting
         run: cargo fmt --all -- --check
