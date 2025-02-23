@@ -8,7 +8,7 @@ homepage = "https://github.com/qeeqez/snowid-postgres"
 documentation = "https://github.com/qeeqez/snowid-postgres"
 categories = [
     "featured",
-    "Data / Transformations"
+    "data_transformations"
 ]
 loadable_libraries = [{ library_name = "pg_snowid", requires_restart = true }]
 
