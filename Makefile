@@ -1,5 +1,5 @@
-EXTENSION     = pg_snowid
-EXTVERSION    = $(shell grep "^default_version" pg_snowid.control | sed -r "s/default_version[^']+'([^']+).*/\1/")
+EXTENSION     = snowid
+EXTVERSION    = $(shell grep "^default_version" snowid.control | sed -r "s/default_version[^']+'([^']+).*/\1/")
 DATA          = $(wildcard sql/*--*.sql)
 TESTS         = $(wildcard test/sql/*.sql)
 REGRESS       = $(patsubst test/sql/%.sql,%,$(TESTS))
