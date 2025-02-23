@@ -64,7 +64,6 @@ jobs:
         run: trunk publish pg_snowid
 
   build_and_push:
-    if: startsWith(github.ref, 'refs/tags/')
     name: Build and push images
     runs-on: ubuntu-latest
     strategy:
@@ -81,7 +80,7 @@ jobs:
         id: versions
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "TAG_VER=$(grep 'default_version' pgmq.control | cut -d "'" -f 2)" >> $GITHUB_OUTPUT
+          echo "TAG_VER=$(grep 'default_version' pg_snowid.control | cut -d "'" -f 2)" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -97,31 +96,29 @@ jobs:
 
       - name: Generate dockerfile from template file
         working-directory: ./
-        run: ./images/pgmq-pg/replace-pg-version.sh ${{ matrix.pg }} ./images/pgmq-pg/Dockerfile.in ./images/pgmq-pg/Dockerfile
+        run: ./images/pgsnowid-cloudnative/replace-pg-version.sh ${{ matrix.pg }} ./images/pgsnowid-cloudnative/in.Dockerfile ./images/pgsnowid-cloudnative/Dockerfile
 
       - name: Build and push -- Commit
         # push commit build when not a release
-        if: github.event_name != 'release'
+        if: !startsWith(github.ref, 'refs/tags/')
         uses: docker/build-push-action@v5
         with:
-          working-directory: ./
-          file: ./images/pgmq-pg/Dockerfile
+          file: ./images/pgsnowid-cloudnative/Dockerfile
           context: .
           platforms: linux/amd64, linux/arm64
           push: true
           tags: |
-            quay.io/tembo/pg${{matrix.pg}}-pgmq:v${{ steps.versions.outputs.SHORT_SHA }}
+            qeeqez/pg${{matrix.pg}}-pgsnowid:v${{ steps.versions.outputs.SHORT_SHA }}
 
       - name: Build and push -- Releases
         # only publish release events
-        if: github.event_name == 'release'
-        uses: docker/build-push-action@v5
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/build-push-action@v6
         with:
-          working-directory: ./
-          file: ./images/pgmq-pg/Dockerfile
+          file: ./images/pgsnowid-cloudnative/Dockerfile
           context: .
           platforms: linux/amd64, linux/arm64
           push: true
           tags: |
-            quay.io/tembo/pg${{matrix.pg}}-pgmq:v${{ steps.versions.outputs.TAG_VER }}
-            quay.io/tembo/pg${{matrix.pg}}-pgmq:latest
+            qeeqez/pg${{matrix.pg}}-pgsnowid:v${{ steps.versions.outputs.TAG_VER }}
+            qeeqez/pg${{matrix.pg}}-pgsnowid:latest
