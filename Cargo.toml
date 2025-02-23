@@ -2,7 +2,7 @@
 name = "pg_snowid"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.85.0"
+rust-version = "1.83.0"
 
 authors = ["Maksim Sasnouski <qeeqez@gmail.com>"]
 description = "PostgreSQL extension for generating SnowID - a Snowflake-like timestamp-based distributed unique identifier"
@@ -32,8 +32,8 @@ pg_test = []
 
 [dependencies]
 pgrx = "=0.12.9"
-snowid = "0.1.0"
-once_cell = "1.20.3"
+snowid = "0.1.2"
+heapless = "0.8.0"
 
 [dev-dependencies]
 pgrx-tests = "=0.12.9"
