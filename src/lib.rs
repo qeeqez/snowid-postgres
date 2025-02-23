@@ -1,13 +1,36 @@
-use once_cell::sync::Lazy;
+use heapless::FnvIndexMap;
+use pgrx::atomics::*;
+use pgrx::lwlock::PgLwLock;
+use pgrx::pg_shmem_init;
 use pgrx::prelude::*;
+use pgrx::shmem::PGRXSharedMemory;
+use pgrx::shmem::*;
 use snowid::SnowID;
-use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicI16, Ordering}; // Import PgSharedMemory directly
 
 ::pgrx::pg_module_magic!();
 
-static NODE_ID: Lazy<Mutex<i16>> = Lazy::new(|| Mutex::new(1));
-static GENERATORS: Lazy<Mutex<HashMap<String, SnowID>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+const MAX_TABLES: usize = 1024;
+
+#[derive(Debug, Clone, Copy)]
+struct SharedSnowID(SnowID);
+
+unsafe impl PGRXSharedMemory for SharedSnowID {}
+
+impl Default for SharedSnowID {
+    fn default() -> Self {
+        Self(SnowID::new(1).unwrap())
+    }
+}
+
+static NODE_ID: PgAtomic<AtomicI16> = PgAtomic::new();
+static GENERATORS: PgLwLock<FnvIndexMap<String, SharedSnowID, MAX_TABLES>> = PgLwLock::new();
+
+#[pg_guard]
+pub extern "C" fn _PG_init() {
+    pg_shmem_init!(NODE_ID);
+    pg_shmem_init!(GENERATORS);
+}
 
 /// Sets the node ID for this PostgreSQL instance
 /// This should be unique across your database cluster
@@ -16,45 +39,37 @@ fn set_node_id(node: i16) {
     if node < 0 || node > 1023 {
         error!("Node ID must be between 0 and 1023");
     }
-    let mut node_id = NODE_ID.lock().unwrap();
-    *node_id = node;
+    NODE_ID.get().store(node, Ordering::Relaxed);
 }
 
 /// Gets the currently set node ID
 #[pg_extern]
 fn get_node_id() -> i16 {
-    *NODE_ID.lock().unwrap()
+    NODE_ID.get().load(Ordering::Relaxed)
 }
+
 
 /// Generates a new Snowflake ID for the given table
 /// Each table gets its own SnowID instance to maintain separate sequences
 #[pg_extern]
-fn gen_snowid(table_name: &str) -> i64 {
-    let mut generators = GENERATORS.lock().unwrap();
-    let node_id = *NODE_ID.lock().unwrap();
-    
-    let generator = generators.entry(table_name.to_string()).or_insert_with(|| {
-        SnowID::new(node_id as u16).unwrap_or_else(|e| {
-            error!("Failed to create SnowID generator: {}", e);
-        })
-    });
-    
-    generator.generate().try_into().unwrap()
-}
+fn gen_snowid(table_name: String) -> i64 {
+    let mut generators = GENERATORS.exclusive();
 
-#[pg_extern]
-fn get_snowid_timestamp(id: i64, table_name: &str) -> i64 {
-    let mut generators = GENERATORS.lock().unwrap();
-    let node_id = *NODE_ID.lock().unwrap();
+    let mut generator: SharedSnowID;
+    if !generators.contains_key(&table_name) {
+        let node_id = NODE_ID.get().load(Ordering::Relaxed);
+        let snowid: SnowID = SnowID::new(node_id as u16)
+            .unwrap_or_else(|e| error!("Failed to create SnowID generator: {}", e));
+        let shared_snowid = SharedSnowID(snowid);
+        generator = generators
+            .insert(table_name, shared_snowid)
+            .unwrap()
+            .unwrap()
+    } else {
+        generator = generators[&table_name]
+    }
 
-    let generator = generators.entry(table_name.to_string()).or_insert_with(|| {
-        SnowID::new(node_id as u16).unwrap_or_else(|e| {
-            error!("Failed to create SnowID generator: {}", e);
-        })
-    });
-
-    let id_u64: u64 = id.try_into().unwrap();
-    generator.extract.timestamp(id_u64).try_into().unwrap()
+    generator.0.generate().try_into().unwrap()
 }
 
 #[cfg(any(test, feature = "pg_test"))]
