@@ -1,6 +1,6 @@
 [package]
 name = "pg_snowid"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 rust-version = "1.83.0"
 
@@ -25,9 +25,9 @@ path = "./src/bin/pgrx_embed.rs"
 
 [features]
 default = ["pg17"]
-pg15 = ["pgrx/pg15", "pgrx-tests/pg15" ]
-pg16 = ["pgrx/pg16", "pgrx-tests/pg16" ]
 pg17 = ["pgrx/pg17", "pgrx-tests/pg17" ]
+pg16 = ["pgrx/pg16", "pgrx-tests/pg16" ]
+pg15 = ["pgrx/pg15", "pgrx-tests/pg15" ]
 pg_test = []
 
 [dependencies]

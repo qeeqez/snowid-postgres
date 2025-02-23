@@ -1,6 +1,5 @@
-comment = 'PostgreSQL extension for generating SnowID - a Snowflake-like timestamp-based distributed unique identifier'
-default_version = '0.1.0'
+comment = 'Generate Snowflake-like IDs with speed and thread-safety'
+default_version = '0.0.1'
 module_pathname = '$libdir/pg_snowid'
 relocatable = false
-superuser = true
-trusted = false
+superuser = false
