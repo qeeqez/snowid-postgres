@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg: [ 14, 15, 16, 17 ]
+        pg: [ 15, 16, 17 ]
 
     steps:
       - uses: actions/checkout@v4
@@ -62,7 +62,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg: [ 14, 15, 16, 17 ]
+        pg: [ 15, 16, 17 ]
     steps:
       - uses: actions/checkout@v4
 
@@ -91,7 +91,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg: [ 14, 15, 16, 17 ]
+        pg: [ 15, 16, 17 ]
     outputs:
       short_sha: ${{ steps.versions.outputs.SHORT_SHA }}
     steps:
