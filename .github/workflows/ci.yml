@@ -109,7 +109,7 @@ jobs:
           platforms: linux/amd64, linux/arm64
           push: true
           tags: |
-            qeeqez/snowid:v${{ steps.versions.outputs.SHORT_SHA }}-pg${{matrix.pg}
+            qeeqez/snowid:v${{ steps.versions.outputs.SHORT_SHA }}-pg${{matrix.pg}}
 
       - name: Build and push -- Releases
         # only publish release events
@@ -121,5 +121,5 @@ jobs:
           platforms: linux/amd64, linux/arm64
           push: true
           tags: |
-            qeeqez/snowid:v${{ steps.versions.outputs.TAG_VER }}-pg${{matrix.pg}
-            qeeqez/snowid:latest-pg${{matrix.pg}
+            qeeqez/snowid:v${{ steps.versions.outputs.TAG_VER }}-pg${{matrix.pg}}
+            qeeqez/snowid:latest-pg${{matrix.pg}}
