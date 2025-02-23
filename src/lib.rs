@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use heapless::FnvIndexMap;
 use pgrx::atomics::*;
 use pgrx::lwlock::PgLwLock;
@@ -8,7 +10,7 @@ use pgrx::shmem::*;
 use snowid::SnowID;
 use std::sync::atomic::{AtomicI16, Ordering}; // Import PgSharedMemory directly
 
-::pgrx::pg_module_magic!();
+pg_module_magic!();
 
 const MAX_TABLES: usize = 1024;
 
