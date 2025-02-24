@@ -27,7 +27,8 @@
 
 ## 🎯 Installation
 
-### Option 1: Docker
+<details>
+<summary><b>Docker Image</b></summary>
 
 Use our pre-built PostgreSQL 17 image with SnowID extension:
 
@@ -41,8 +42,10 @@ The image comes with:
 - SnowID extension installed
 - `shared_preload_libraries` configured
 - Extension ready to use (`CREATE EXTENSION pg_snowid;`)
+</details>
 
-### Option 2: Manual Installation
+<details>
+<summary><b>Manual Installation</b></summary>
 
 1. Build and install the extension:
 ```bash
@@ -61,8 +64,14 @@ shared_preload_libraries = 'pg_snowid'
 ```sql
 CREATE EXTENSION pg_snowid;
 ```
+</details>
 
 ## 📊 Usage
+
+First, create the extension in your database:
+```sql
+CREATE EXTENSION pg_snowid;
+```
 
 ### Set Node ID (Optional)
 

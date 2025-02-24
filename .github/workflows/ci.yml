@@ -13,7 +13,6 @@ on:
 
 jobs:
   build_and_push:
-    if: github.event_name == 'release'
     name: Build and push images
     runs-on: ubuntu-24.04
     outputs:
