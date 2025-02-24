@@ -26,7 +26,7 @@ impl Default for SharedSnowID {
 }
 
 static NODE_ID: PgAtomic<AtomicI16> = PgAtomic::new();
-static GENERATORS: PgLwLock<FnvIndexMap<String, SharedSnowID, MAX_TABLES>> = PgLwLock::new();
+static GENERATORS: PgLwLock<FnvIndexMap<i32, SharedSnowID, MAX_TABLES>> = PgLwLock::new();
 
 #[pg_guard]
 pub extern "C" fn _PG_init() {
@@ -52,31 +52,42 @@ fn get_node_id() -> i16 {
 
 /// Generates a new Snowflake ID for the given table
 /// Each table gets its own SnowID instance to maintain separate sequences
+/// table_id should be a unique number for each table, preferably starting from 1
 #[pg_extern]
-fn gen_snowid(table_name: &str) -> i64 {
+fn gen_snowid(table_id: i32) -> i64 {
+    if table_id <= 0 {
+        error!("Table ID must be a positive number");
+    }
+    
     let mut generators = GENERATORS.exclusive();
     
     // Get or create the generator
-    if !generators.contains_key(&table_name.to_string()) {
+    if !generators.contains_key(&table_id) {
         let node_id = NODE_ID.get().load(Ordering::Relaxed);
         let snowid = SnowID::new(node_id as u16)
             .unwrap_or_else(|e| error!("Failed to create SnowID generator: {}", e));
         let shared_snowid = SharedSnowID(snowid);
         generators
-            .insert(table_name.to_string(), shared_snowid)
-            .unwrap();
+            .insert(table_id, shared_snowid)
+            .unwrap_or_else(|_| error!("Failed to insert generator for table ID {}", table_id));
     }
     
     // Now we can safely get the reference and generate ID while holding the lock
-    let generator = &generators[&table_name.to_string()];
+    let generator = &generators[&table_id];
     generator.0.generate().try_into().unwrap()
 }
 
 /// Extracts the timestamp from a Snowflake ID
 #[pg_extern]
-fn get_snowid_timestamp(id: i64, table_name: &str) -> i64 {
+fn get_snowid_timestamp(id: i64, table_id: i32) -> i64 {
+    if table_id <= 0 {
+        error!("Table ID must be a positive number");
+    }
+    
     let generators = GENERATORS.exclusive();
-    let generator = &generators[&table_name.to_string()];
+    let generator = generators
+        .get(&table_id)
+        .unwrap_or_else(|| error!("No generator found for table ID {}", table_id));
     let id_u64: u64 = id.try_into().unwrap();
     generator.0.extract.timestamp(id_u64).try_into().unwrap()
 }
@@ -88,22 +99,19 @@ fn snowid_stats() -> String {
     stats.push_str(&format!("Total Generators: {}\n", generators.len()));
     stats.push_str("Generators:\n");
 
-    for (key, _) in generators.iter() {
+    for (table_id, _) in generators.iter() {
         stats.push_str(&format!(
-            "- Key: '{}', bytes: {:?}\n",
-            key,
-            key.as_bytes()
+            "- Table ID: {}\n",
+            table_id
         ));
     }
 
     stats.push_str(&format!(
         "Current Node ID: {}\n\
          Max Tables Supported: {}",
-        NODE_ID.get().load(Ordering::Relaxed),
+        get_node_id(),
         MAX_TABLES
     ));
-
-    log!("{}", stats);
     stats
 }
 
