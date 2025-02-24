@@ -14,7 +14,7 @@ pg_module_magic!();
 
 const MAX_TABLES: usize = 1024;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 struct SharedSnowID(SnowID);
 
 unsafe impl PGRXSharedMemory for SharedSnowID {}
@@ -54,22 +54,9 @@ fn get_node_id() -> i16 {
 /// Each table gets its own SnowID instance to maintain separate sequences
 #[pg_extern]
 fn gen_snowid(table_name: &str) -> i64 {
-    let mut generator = get_or_create_generator(table_name);
-    generator.0.generate().try_into().unwrap()
-}
-
-/// Extracts the timestamp from a Snowflake ID
-#[pg_extern]
-fn get_snowid_timestamp(id: i64, table_name: &str) -> i64 {
-    let generator = get_or_create_generator(table_name);
-    let id_u64: u64 = id.try_into().unwrap();
-    generator.0.extract.timestamp(id_u64).try_into().unwrap()
-}
-
-/// Gets or creates a SnowID generator for the specified table
-fn get_or_create_generator(table_name: &str) -> SharedSnowID {
     let mut generators = GENERATORS.exclusive();
-
+    
+    // Get or create the generator
     if !generators.contains_key(&table_name.to_string()) {
         let node_id = NODE_ID.get().load(Ordering::Relaxed);
         let snowid = SnowID::new(node_id as u16)
@@ -77,11 +64,12 @@ fn get_or_create_generator(table_name: &str) -> SharedSnowID {
         let shared_snowid = SharedSnowID(snowid);
         generators
             .insert(table_name.to_string(), shared_snowid)
-            .unwrap()
-            .unwrap()
-    } else {
-        generators[&table_name.to_string()]
+            .unwrap();
     }
+    
+    // Now we can safely get the reference and generate ID while holding the lock
+    let generator = &generators[&table_name.to_string()];
+    generator.0.generate().try_into().unwrap()
 }
 
 // TODO: tests cant run without shared_preloaded_library
