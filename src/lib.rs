@@ -8,7 +8,7 @@ use pgrx::prelude::*;
 use pgrx::shmem::PGRXSharedMemory;
 use pgrx::shmem::*;
 use snowid::SnowID;
-use std::sync::atomic::{AtomicI16, Ordering}; // Import PgSharedMemory directly
+use std::sync::atomic::{AtomicI16, Ordering};
 
 pg_module_magic!();
 
@@ -34,8 +34,10 @@ pub extern "C" fn _PG_init() {
     pg_shmem_init!(GENERATORS);
 }
 
-/// Sets the node ID for this PostgreSQL instance
-/// This should be unique across your database cluster
+/// Sets node ID (0-1023) for this PostgreSQL instance
+/// 
+/// @param node - Node ID between 0 and 1023
+/// @example SELECT snowid_set_node(5);
 #[pg_extern]
 fn snowid_set_node(node: i16) {
     if !(0..=1023).contains(&node) {
@@ -44,15 +46,20 @@ fn snowid_set_node(node: i16) {
     NODE_ID.get().store(node, Ordering::Relaxed);
 }
 
-/// Gets the currently set node ID
+/// Gets current node ID
+/// 
+/// @returns Node ID (0-1023)
+/// @example SELECT snowid_get_node();
 #[pg_extern]
 fn snowid_get_node() -> i16 {
     NODE_ID.get().load(Ordering::Relaxed)
 }
 
-/// Generates a new Snowflake ID for the given table
-/// Each table gets its own SnowID instance to maintain separate sequences
-/// table_id should be a unique number for each table, preferably starting from 1
+/// Generates unique Snowflake ID for given table
+/// 
+/// @param table_id - Unique positive integer ID for the table
+/// @returns 64-bit unique time-sorted identifier
+/// @example CREATE TABLE users (id bigint PRIMARY KEY DEFAULT snowid_generate(1));
 #[pg_extern]
 fn snowid_generate(table_id: i32) -> i64 {
     if table_id <= 0 {
@@ -77,21 +84,35 @@ fn snowid_generate(table_id: i32) -> i64 {
     generator.0.generate().try_into().unwrap()
 }
 
-/// Extracts the timestamp from a Snowflake ID
+/// Gets timestamp from Snowflake ID
+/// 
+/// @param id - Snowflake ID
+/// @returns Unix timestamp in milliseconds
+/// @example SELECT snowid_get_timestamp(151819733950271234);
 #[pg_extern]
-fn snowid_get_timestamp(id: i64, table_id: i32) -> i64 {
-    if table_id <= 0 {
-        error!("Table ID must be a positive number");
+fn snowid_get_timestamp(id: i64) -> i64 {
+    let mut generators = GENERATORS.exclusive();
+    
+    // Use default generator (table_id = 0) for timestamp extraction
+    if !generators.contains_key(&0) {
+        let node_id = NODE_ID.get().load(Ordering::Relaxed);
+        let snowid = SnowID::new(node_id as u16)
+            .unwrap_or_else(|e| error!("Failed to create default generator: {}", e));
+        let shared_snowid = SharedSnowID(snowid);
+        generators
+            .insert(0, shared_snowid)
+            .unwrap_or_else(|_| error!("Failed to insert default generator"));
     }
     
-    let generators = GENERATORS.exclusive();
-    let generator = generators
-        .get(&table_id)
-        .unwrap_or_else(|| error!("No generator found for table ID {}", table_id));
+    let generator = &generators[&0];
     let id_u64: u64 = id.try_into().unwrap();
     generator.0.extract.timestamp(id_u64).try_into().unwrap()
 }
 
+/// Shows SnowID statistics (generators, table IDs, node ID)
+/// 
+/// @returns Statistics about SnowID usage
+/// @example SELECT snowid_stats();
 #[pg_extern]
 fn snowid_stats() -> String {
     let generators = GENERATORS.share();
