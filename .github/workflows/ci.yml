@@ -12,113 +12,79 @@ on:
       - created
 
 jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        pg: [ 15, 16, 17 ]
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Install Rust toolchain
-#        uses: dtolnay/rust-toolchain@stable
-#        with:
-#          components: clippy, rustfmt
-#
-#      - name: Rust Cache
-#        uses: Swatinem/rust-cache@v2
-#        with:
-#          cache-directories: |
-#            /home/runner/.pgrx
-#
-#      - name: Setup PGRX
-#        run: |
-#          cargo install --force cargo-pgrx
-#          set -x
-#          # pgrx init can take a long time, and it re-compiles postgres even when there
-#          # is a cached version. So, we can just check for the directory and
-#          cat /home/runner/.pgrx/config.toml || true
-#          if find /home/runner/.pgrx | grep $(awk -F "=" '/${{ matrix.pg }}/ {print $2}' /home/runner/.pgrx/config.toml | tr -d '"'); then
-#            echo "Already found pgrx is initialized. Skipping 'cargo pgrx init' command."
-#          else
-#            cargo pgrx init --pg${{ matrix.pg }} download || true
-#          fi
-#
-#      - name: Check formatting
-#        run: cargo fmt --all -- --check
-#
-#      - name: Clippy
-#        run: cargo clippy -- -D warnings
-#
-#      - name: Build
-#        run: cargo build --verbose
-
-#  publish_trunk:
-#    if: startsWith(github.ref, 'refs/tags/')
-#    needs: build
-#    runs-on: ubuntu-latest
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        pg: [ 15, 16, 17 ]
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Install Rust toolchain
-#        uses: dtolnay/rust-toolchain@stable
-#
-#      - name: Rust Cache
-#        uses: Swatinem/rust-cache@v2
-#
-#      - name: Install pg-trunk
-#        shell: bash
-#        run: cargo install pg-trunk
-#
-#      - name: Trunk build
-#        run: trunk build --pg-version ${{ matrix.pg }}
-#
-#      - name: Trunk publish
-#        env:
-#          TRUNK_API_TOKEN: ${{ secrets.TRUNK_AUTH_TOKEN }}
-#        run: trunk publish snowid
-
+  #  build:
+  #    runs-on: ubuntu-latest
+  #    strategy:
+  #      fail-fast: false
+  #      matrix:
+  #        pg: [ 15, 16, 17 ]
+  #
+  #    steps:
+  #      - uses: actions/checkout@v4
+  #
+  #      - name: Install Rust toolchain
+  #        uses: dtolnay/rust-toolchain@stable
+  #        with:
+  #          components: clippy, rustfmt
+  #
+  #      - name: Rust Cache
+  #        uses: Swatinem/rust-cache@v2
+  #        with:
+  #          cache-directories: |
+  #            /home/runner/.pgrx
+  #
+  #      - name: Setup PGRX
+  #        run: |
+  #          cargo install --force cargo-pgrx
+  #          set -x
+  #          # pgrx init can take a long time, and it re-compiles postgres even when there
+  #          # is a cached version. So, we can just check for the directory and
+  #          cat /home/runner/.pgrx/config.toml || true
+  #          if find /home/runner/.pgrx | grep $(awk -F "=" '/${{ matrix.pg }}/ {print $2}' /home/runner/.pgrx/config.toml | tr -d '"'); then
+  #            echo "Already found pgrx is initialized. Skipping 'cargo pgrx init' command."
+  #          else
+  #            cargo pgrx init --pg${{ matrix.pg }} download || true
+  #          fi
+  #
+  #      - name: Check formatting
+  #        run: cargo fmt --all -- --check
+  #
+  #      - name: Clippy
+  #        run: cargo clippy -- -D warnings
+  #
+  #      - name: Build
+  #        run: cargo build --verbose
   build_and_push:
+    if: github.event_name == 'release'
     name: Build and push images
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        pg: [ 15, 16, 17 ]
+    runs-on: ubuntu-24.04
     outputs:
       short_sha: ${{ steps.versions.outputs.SHORT_SHA }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
 
+      - name: Install stoml and pg-trunk
+        shell: bash
+        run: |
+          set -xe
+          wget https://github.com/freshautomations/stoml/releases/download/v0.7.1/stoml_linux_amd64 &> /dev/null
+          mv stoml_linux_amd64 stoml
+          chmod +x stoml
+          sudo mv stoml /usr/local/bin/
+
       - name: Set version strings
         id: versions
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "TAG_VER=$(grep 'default_version' pg_snowid.control | cut -d "'" -f 2)" >> $GITHUB_OUTPUT
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          echo "TAG_VER=$(/usr/local/bin/stoml Trunk.toml extension.version)" >> $GITHUB_OUTPUT
+          echo "PGRX_VER=$(/usr/local/bin/stoml Cargo.toml dependencies.pgrx)" >> $GITHUB_OUTPUT
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Generate dockerfile from template file
-        run: |
-          chmod +x ./images/snowid-cloudnative/replace-pg-version.sh
-          ./images/snowid-cloudnative/replace-pg-version.sh ${{ matrix.pg }} ./images/snowid-cloudnative/in.Dockerfile ./images/snowid-cloudnative/Dockerfile
 
       - name: Build and push -- Commit
         # push commit build when not a release
@@ -127,10 +93,10 @@ jobs:
         with:
           file: ./images/snowid-cloudnative/Dockerfile
           context: .
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            qeeqez/snowid:v${{ steps.versions.outputs.SHORT_SHA }}-pg${{matrix.pg}}
+            qeeqez/snowid:v${{ steps.versions.outputs.SHORT_SHA }}-pg17
 
       - name: Build and push -- Releases
         # only publish release events
@@ -139,8 +105,75 @@ jobs:
         with:
           file: ./images/snowid-cloudnative/Dockerfile
           context: .
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            qeeqez/snowid:v${{ steps.versions.outputs.TAG_VER }}-pg${{matrix.pg}}
-            qeeqez/snowid:pg${{matrix.pg}}
+            qeeqez/snowid:v${{ steps.versions.outputs.TAG_VER }}-pg17
+            qeeqez/snowid:pg17
+
+#  build:
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        pg: [ 15, 16, 17 ]
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Install Rust toolchain
+#        uses: dtolnay/rust-toolchain@stable
+#
+#      - name: Rust Cache
+#        uses: Swatinem/rust-cache@v2
+#        with:
+#          cache-directories: |
+#            /home/runner/.pgrx
+#
+#      - name: Install pg-trunk
+#        shell: bash
+#        run: cargo install pg-trunk
+#
+#      - name: Trunk build
+#        run: trunk build --pg-version ${{ matrix.pg }}
+#
+#      - name: Set up QEMU
+#        uses: docker/setup-qemu-action@v3
+#
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v3
+#
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v3
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#
+#      - name: Generate dockerfile from template file
+#        run: |
+#          chmod +x ./images/snowid-cloudnative/replace-pg-version.sh
+#          ./images/snowid-cloudnative/replace-pg-version.sh ${{ matrix.pg }} ./images/snowid-cloudnative/in.Dockerfile ./images/snowid-cloudnative/Dockerfile
+#
+#      - name: Build and push -- Commit
+#        # push commit build when not a release
+#        if: startsWith(github.ref, 'refs/tags/') != true
+#        uses: docker/build-push-action@v6
+#        with:
+#          file: ./images/snowid-cloudnative/Dockerfile
+#          context: .
+#          platforms: linux/amd64, linux/arm64
+#          push: true
+#          tags: |
+#            qeeqez/snowid:v${{ steps.versions.outputs.SHORT_SHA }}-pg${{matrix.pg}}
+#
+#      - name: Build and push -- Releases
+#        # only publish release events
+#        if: startsWith(github.ref, 'refs/tags/')
+#        uses: docker/build-push-action@v6
+#        with:
+#          file: ./images/snowid-cloudnative/Dockerfile
+#          context: .
+#          platforms: linux/amd64, linux/arm64
+#          push: true
+#          tags: |
+#            qeeqez/snowid:v${{ steps.versions.outputs.TAG_VER }}-pg${{matrix.pg}}
+#            qeeqez/snowid:pg${{matrix.pg}}
