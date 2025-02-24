@@ -91,7 +91,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') != true
         uses: docker/build-push-action@v6
         with:
-          file: ./images/snowid-cloudnative/Dockerfile
+          file: ./images/snowid-pg/Dockerfile
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
@@ -103,7 +103,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: docker/build-push-action@v6
         with:
-          file: ./images/snowid-cloudnative/Dockerfile
+          file: ./images/snowid-pg/Dockerfile
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
@@ -150,15 +150,15 @@ jobs:
 #
 #      - name: Generate dockerfile from template file
 #        run: |
-#          chmod +x ./images/snowid-cloudnative/replace-pg-version.sh
-#          ./images/snowid-cloudnative/replace-pg-version.sh ${{ matrix.pg }} ./images/snowid-cloudnative/in.Dockerfile ./images/snowid-cloudnative/Dockerfile
+#          chmod +x ./images/snowid-pg/replace-pg-version.sh
+#          ./images/snowid-pg/replace-pg-version.sh ${{ matrix.pg }} ./images/snowid-pg/in.Dockerfile ./images/snowid-pg/Dockerfile
 #
 #      - name: Build and push -- Commit
 #        # push commit build when not a release
 #        if: startsWith(github.ref, 'refs/tags/') != true
 #        uses: docker/build-push-action@v6
 #        with:
-#          file: ./images/snowid-cloudnative/Dockerfile
+#          file: ./images/snowid-pg/Dockerfile
 #          context: .
 #          platforms: linux/amd64, linux/arm64
 #          push: true
@@ -170,7 +170,7 @@ jobs:
 #        if: startsWith(github.ref, 'refs/tags/')
 #        uses: docker/build-push-action@v6
 #        with:
-#          file: ./images/snowid-cloudnative/Dockerfile
+#          file: ./images/snowid-pg/Dockerfile
 #          context: .
 #          platforms: linux/amd64, linux/arm64
 #          push: true
