@@ -31,5 +31,3 @@ FROM ghcr.io/cloudnative-pg/postgresql:17.4-bookworm
 
 COPY --from=builder /usr/share/postgresql/17/extension /usr/share/postgresql/17/extension
 COPY --from=builder /usr/lib/postgresql/17/lib /usr/lib/postgresql/17/lib
-
-COPY images/snowid-pg/postgresql.conf /usr/share/postgresql/17/postgresql.conf.sample
