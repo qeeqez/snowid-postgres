@@ -34,7 +34,7 @@
 3. Install [pgrx](https://github.com/pgcentralfoundation/pgrx):
 ```bash
 cargo install --locked cargo-pgrx
-cargo pgrx init
+cargo pgrx init --pg17 download
 ```
 
 4. Clone and build the extension:
@@ -52,23 +52,43 @@ After installation, enable the extension in your database:
 CREATE EXTENSION pg_snowid;
 ```
 
-### Generate IDs
+### Set Node ID (Optional)
 
 ```sql
--- Generate ID with default node_id = 1
-SELECT snowid_generate();
+-- Set node ID (0-1023, default is 1)
+SELECT snowid_set_node(5);
 
--- Generate ID with custom node_id (0-1023)
-SELECT snowid_generate(5);
+-- Get current node ID
+SELECT snowid_get_node();
+```
 
+### Create Table with SnowID
+
+```sql
+-- Create a table with SnowID
+CREATE TABLE users (
+    id bigint PRIMARY KEY DEFAULT snowid_generate(1),  -- Use unique table_id (1)
+    name text,
+    created_at timestamptz DEFAULT current_timestamp
+);
+
+-- Create another table with SnowID
+CREATE TABLE posts (
+    id bigint PRIMARY KEY DEFAULT snowid_generate(2),  -- Use different table_id (2)
+    title text,
+    content text,
+    created_at timestamptz DEFAULT current_timestamp
+);
+```
+
+### Extract ID Components
+
+```sql
 -- Extract timestamp from ID
-SELECT snowid_timestamp(151819733950271234);
+SELECT snowid_get_timestamp(151819733950271234, 1);  -- Pass table_id
 
--- Extract node from ID
-SELECT snowid_node(151819733950271234);
-
--- Extract sequence from ID
-SELECT snowid_sequence(151819733950271234);
+-- View SnowID statistics
+SELECT snowid_stats();
 ```
 
 ## 🔧 Development

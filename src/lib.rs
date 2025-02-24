@@ -37,7 +37,7 @@ pub extern "C" fn _PG_init() {
 /// Sets the node ID for this PostgreSQL instance
 /// This should be unique across your database cluster
 #[pg_extern]
-fn set_node_id(node: i16) {
+fn snowid_set_node(node: i16) {
     if !(0..=1023).contains(&node) {
         error!("Node ID must be between 0 and 1023");
     }
@@ -46,7 +46,7 @@ fn set_node_id(node: i16) {
 
 /// Gets the currently set node ID
 #[pg_extern]
-fn get_node_id() -> i16 {
+fn snowid_get_node() -> i16 {
     NODE_ID.get().load(Ordering::Relaxed)
 }
 
@@ -54,7 +54,7 @@ fn get_node_id() -> i16 {
 /// Each table gets its own SnowID instance to maintain separate sequences
 /// table_id should be a unique number for each table, preferably starting from 1
 #[pg_extern]
-fn gen_snowid(table_id: i32) -> i64 {
+fn snowid_generate(table_id: i32) -> i64 {
     if table_id <= 0 {
         error!("Table ID must be a positive number");
     }
@@ -79,7 +79,7 @@ fn gen_snowid(table_id: i32) -> i64 {
 
 /// Extracts the timestamp from a Snowflake ID
 #[pg_extern]
-fn get_snowid_timestamp(id: i64, table_id: i32) -> i64 {
+fn snowid_get_timestamp(id: i64, table_id: i32) -> i64 {
     if table_id <= 0 {
         error!("Table ID must be a positive number");
     }
@@ -109,7 +109,7 @@ fn snowid_stats() -> String {
     stats.push_str(&format!(
         "Current Node ID: {}\n\
          Max Tables Supported: {}",
-        get_node_id(),
+        snowid_get_node(),
         MAX_TABLES
     ));
     stats
