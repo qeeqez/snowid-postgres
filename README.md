@@ -41,7 +41,6 @@ The image comes with:
 - PostgreSQL 17
 - SnowID extension installed
 - `shared_preload_libraries` configured
-- Extension ready to use (`CREATE EXTENSION pg_snowid;`)
 </details>
 
 <details>
@@ -59,11 +58,6 @@ shared_preload_libraries = 'pg_snowid'
 ```
 
 3. Restart PostgreSQL server to load the library
-
-4. Create the extension in your database:
-```sql
-CREATE EXTENSION pg_snowid;
-```
 </details>
 
 ## 📊 Usage
