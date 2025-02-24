@@ -27,30 +27,42 @@
 
 ## 🎯 Installation
 
-### Build from source
+### Option 1: Docker
 
-1. Install [Rust](https://www.rust-lang.org/tools/install)
-2. Install PostgreSQL development packages
-3. Install [pgrx](https://github.com/pgcentralfoundation/pgrx):
+Use our pre-built PostgreSQL 17 image with SnowID extension:
+
 ```bash
-cargo install --locked cargo-pgrx
-cargo pgrx init --pg17 download
+docker pull qeeqez/snowid:v0.1.0-pg17
+docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 qeeqez/snowid:v0.1.0-pg17
 ```
 
-4. Clone and build the extension:
+The image comes with:
+- PostgreSQL 17
+- SnowID extension installed
+- `shared_preload_libraries` configured
+- Extension ready to use (`CREATE EXTENSION pg_snowid;`)
+
+### Option 2: Manual Installation
+
+1. Build and install the extension:
 ```bash
-git clone https://github.com/qeeqez/snowid-postgres.git
-cd snowid-postgres
-cargo pgrx install
+cargo pgrx install --release
 ```
 
-## 📊 Usage
+2. Add the extension to `postgresql.conf`:
+```ini
+# Required: Add pg_snowid to shared_preload_libraries
+shared_preload_libraries = 'pg_snowid'
+```
 
-After installation, enable the extension in your database:
+3. Restart PostgreSQL server to load the library
 
+4. Create the extension in your database:
 ```sql
 CREATE EXTENSION pg_snowid;
 ```
+
+## 📊 Usage
 
 ### Set Node ID (Optional)
 
@@ -81,11 +93,13 @@ CREATE TABLE posts (
 );
 ```
 
+> **Note**: Each table requires a unique positive integer ID (1-1024). The extension currently supports up to 1024 tables. If you need support for more tables, please [create an issue](https://github.com/qeeqez/snowid-postgres/issues) and we'll add this functionality.
+
 ### Extract ID Components
 
 ```sql
 -- Extract timestamp from ID
-SELECT snowid_get_timestamp(151819733950271234, 1);  -- Pass table_id
+SELECT snowid_get_timestamp(151819733950271234);
 
 -- View SnowID statistics
 SELECT snowid_stats();

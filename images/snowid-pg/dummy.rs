@@ -9,6 +9,4 @@ use pgrx::prelude::*;
 use pgrx::shmem::PGRXSharedMemory;
 use pgrx::shmem::*;
 use snowid::SnowID;
-use std::sync::atomic::{AtomicI16, Ordering}; // Import PgSharedMemory directly
-
-pg_module_magic!();
+use std::sync::atomic::{AtomicI16, Ordering};

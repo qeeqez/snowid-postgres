@@ -23,7 +23,7 @@ RUN $HOME/.cargo/bin/cargo pgrx init --pg17 $(which pg_config)
 
 WORKDIR /snowid
 COPY Cargo.toml Cargo.lock pg_snowid.control ./
-COPY images/snowid-pg/lib.rs ./src/lib.rs
+COPY images/snowid-pg/dummy.rs ./src/lib.rs
 RUN $HOME/.cargo/bin/cargo build || true
 
 COPY src ./src
