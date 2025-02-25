@@ -44,7 +44,7 @@ The operator will automatically merge this with other required libraries that it
   cluster:
     enableSuperuserAccess: true
   ```
-- New database could be inited with **postInitApplicationSQL** (doesn't work with restore):
+- New database could be inited with **postInitApplicationSQL**:
   ```yaml
   cluster:
     initdb:

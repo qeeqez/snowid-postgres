@@ -1,4 +1,4 @@
-FROM postgres:17.4-bookworm AS builder
+FROM postgres:17.2-bookworm AS builder
 
 RUN apt-get update \
     && apt-get install -y \
@@ -27,7 +27,8 @@ COPY src ./src
 # install snowid
 RUN $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config)
 
-FROM ghcr.io/cloudnative-pg/postgresql:17.4-bookworm
+# TODO: Cloudnative PG Restore is broken right now on 17.4 https://github.com/cloudnative-pg/cloudnative-pg/issues/6932#issuecomment-2676480209
+FROM ghcr.io/cloudnative-pg/postgresql:17.2-standard-bookworm
 
 USER root
 
