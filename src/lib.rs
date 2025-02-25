@@ -55,13 +55,17 @@ fn snowid_get_node() -> i16 {
     NODE_ID.get().load(Ordering::Relaxed)
 }
 
+#[pg_extern]
+fn snowid_generate(table_id: pg_sys::Oid) -> i64 {
+    snowid_generate_int(table_id.as_u32() as i32)
+}
 /// Generates unique Snowflake ID for given table
 ///
 /// @param table_id - Unique positive integer ID for the table
 /// @returns 64-bit unique time-sorted identifier
 /// @example CREATE TABLE users (id bigint PRIMARY KEY DEFAULT snowid_generate(1));
 #[pg_extern]
-fn snowid_generate(table_id: i32) -> i64 {
+fn snowid_generate_int(table_id: i32) -> i64 {
     if table_id <= 0 {
         error!("Table ID must be a positive number");
     }
