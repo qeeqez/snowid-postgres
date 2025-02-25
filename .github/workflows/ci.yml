@@ -57,10 +57,10 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: docker/build-push-action@v6
         with:
-          file: ./images/snowid-${{ matrix.pg_provider }}/Dockerfile
+          file: ./images/pg/Dockerfile
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            qeeqez/snowid:v${{ steps.versions.outputs.TAG_VER }}-${{ matrix.pg_provider }}17
-            qeeqez/snowid:${{ matrix.pg_provider }}17
+            qeeqez/snowid-${{ matrix.pg_provider }}:v${{ steps.versions.outputs.TAG_VER }}-${{ matrix.pg_provider }}17
+            qeeqez/snowid-${{ matrix.pg_provider }}:17

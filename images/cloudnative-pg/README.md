@@ -40,10 +40,31 @@ The operator will automatically merge this with other required libraries that it
 ## Additional Information
 
 - For more details about shared preload libraries configuration in CloudNative PG, refer to the [official documentation](https://cloudnative-pg.io/documentation/1.17/postgresql_conf/#shared-preload-libraries)
-- After the database starts, don't forget to create the extension in your database:
-  ```sql
-  CREATE EXTENSION pg_snowid;
+- Configure postInitApplicationSQL to automatically create the extension during database initialization
+  ```yaml
+  cluster:
+    initdb:
+      postInitApplicationSQL:
+        - CREATE EXTENSION pg_snowid;
   ```
+- Its impossible to run this manually in database cluster, so needs to be set here.
+
+### Terraform Example
+
+Here's a complete example of how to configure the extension in Terraform, including both the automatic extension creation and shared library loading:
+
+```hcl
+cluster {
+  initdb = {
+    postInitApplicationSQL = ["CREATE EXTENSION pg_snowid;"]
+  }
+  postgresql = {
+    parameters = {
+      shared_preload_libraries = ["pg_snowid"]
+    }
+  }
+}
+```
 
 ## Building the Image
 

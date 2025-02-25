@@ -1,5 +1,5 @@
 #![allow(unexpected_cfgs)]
-#[allow(unused_imports)]
+#![allow(unused_imports)]
 
 use heapless::FnvIndexMap;
 use pgrx::atomics::*;

@@ -29,5 +29,9 @@ RUN $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config)
 
 FROM ghcr.io/cloudnative-pg/postgresql:17.4-bookworm
 
+USER root
+
 COPY --from=builder /usr/share/postgresql/17/extension /usr/share/postgresql/17/extension
 COPY --from=builder /usr/lib/postgresql/17/lib /usr/lib/postgresql/17/lib
+
+USER 26
