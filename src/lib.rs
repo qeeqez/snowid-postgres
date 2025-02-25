@@ -66,22 +66,41 @@ fn snowid_generate(table_id: i32) -> i64 {
         error!("Table ID must be a positive number");
     }
 
+    // First check with shared lock if the generator exists
+    let generators_shared = GENERATORS.share();
+    if generators_shared.contains_key(&table_id) {
+        // Fast path: generator exists, generate ID while holding shared lock
+        return generators_shared[&table_id]
+            .0
+            .generate()
+            .try_into()
+            .unwrap();
+    }
+
+    // Drop shared lock before acquiring exclusive lock to prevent deadlocks
+    drop(generators_shared);
+
+    // Slow path: need to create generator, take exclusive lock
     let mut generators = GENERATORS.exclusive();
 
-    // Get or create the generator
+    // Double-check after acquiring exclusive lock (another session might have created it)
     if !generators.contains_key(&table_id) {
         let node_id = NODE_ID.get().load(Ordering::Relaxed);
-        let snowid = SnowID::new(node_id as u16)
-            .unwrap_or_else(|e| error!("Failed to create SnowID generator: {}", e));
+        let snowid = match SnowID::new(node_id as u16) {
+            Ok(id) => id,
+            Err(e) => error!("Failed to create SnowID generator: {}", e),
+        };
         let shared_snowid = SharedSnowID(snowid);
-        generators
-            .insert(table_id, shared_snowid)
-            .unwrap_or_else(|_| error!("Failed to insert generator for table ID {}", table_id));
+        if let Err(_) = generators.insert(table_id, shared_snowid) {
+            error!(
+                "Failed to insert generator for table ID {}, map is full",
+                table_id
+            );
+        }
     }
 
     // Now we can safely get the reference and generate ID while holding the lock
-    let generator = &generators[&table_id];
-    generator.0.generate().try_into().unwrap()
+    generators[&table_id].0.generate().try_into().unwrap()
 }
 
 /// Gets timestamp from Snowflake ID
@@ -91,21 +110,31 @@ fn snowid_generate(table_id: i32) -> i64 {
 /// @example SELECT snowid_get_timestamp(151819733950271234);
 #[pg_extern]
 fn snowid_get_timestamp(id: i64) -> i64 {
-    let mut generators = GENERATORS.exclusive();
+    let id_u64: u64 = id.try_into().unwrap();
 
-    // Use default generator (table_id = 0) for timestamp extraction
-    if !generators.contains_key(&0) {
-        let node_id = NODE_ID.get().load(Ordering::Relaxed);
-        let snowid = SnowID::new(node_id as u16)
-            .unwrap_or_else(|e| error!("Failed to create default generator: {}", e));
-        let shared_snowid = SharedSnowID(snowid);
-        generators
-            .insert(0, shared_snowid)
-            .unwrap_or_else(|_| error!("Failed to insert default generator"));
+    let generators_shared = GENERATORS.share();
+    // Use any existing generator, doesn't matter which one
+    if !generators_shared.is_empty() {
+        let (_, generator) = generators_shared.iter().next().unwrap();
+        return generator.0.extract.timestamp(id_u64).try_into().unwrap();
     }
 
-    let generator = &generators[&0];
-    let id_u64: u64 = id.try_into().unwrap();
+    // If no generators exist, create a default one
+    let mut generators = GENERATORS.exclusive();
+    if generators.is_empty() {
+        let node_id = NODE_ID.get().load(Ordering::Relaxed);
+        match SnowID::new(node_id as u16) {
+            Ok(snowid) => {
+                let shared_snowid = SharedSnowID(snowid);
+                if let Err(_) = generators.insert(0, shared_snowid) {
+                    error!("Failed to insert default generator");
+                }
+            }
+            Err(e) => error!("Failed to create default generator: {}", e),
+        }
+    }
+
+    let (_, generator) = generators.iter().next().unwrap();
     generator.0.extract.timestamp(id_u64).try_into().unwrap()
 }
 

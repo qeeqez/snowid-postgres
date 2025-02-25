@@ -1,4 +1,4 @@
-FROM postgres:17-bookworm AS builder
+FROM postgres:17.4-bookworm AS builder
 
 RUN apt-get update \
     && apt-get install -y \
@@ -32,14 +32,12 @@ COPY src ./src
 # install snowid
 RUN $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config)
 
-FROM ghcr.io/cloudnative-pg/postgresql:17.4-bookworm
-
-USER root
+FROM postgres:17.4-bookworm
 
 COPY --from=builder /usr/share/postgresql/17/extension /usr/share/postgresql/17/extension
 COPY --from=builder /usr/lib/postgresql/17/lib /usr/lib/postgresql/17/lib
 
-#COPY images/pg/postgresql.conf /usr/share/postgresql/17/postgresql.conf.sample
+COPY images/pg/postgresql.conf /usr/share/postgresql/17/postgresql.conf.sample
 
-RUN usermod -u 26 postgres
-USER 26
+USER postgres
+CMD ["postgres"]
