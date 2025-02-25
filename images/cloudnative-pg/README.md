@@ -38,16 +38,20 @@ spec:
 The operator will automatically merge this with other required libraries that it manages.
 
 ## Additional Information
-
-- For more details about shared preload libraries configuration in CloudNative PG, refer to the [official documentation](https://cloudnative-pg.io/documentation/1.17/postgresql_conf/#shared-preload-libraries)
-- Configure postInitApplicationSQL to automatically create the extension during database initialization
+- You can't install extension with `CREATE EXTENSION pg_snowid;` by default
+- You could temporary **enableSuperuserAccess**:
+ ```yaml
+  cluster:
+    enableSuperuserAccess: true
+  ```
+- New database could be inited with **postInitApplicationSQL** (doesn't work with restore):
   ```yaml
   cluster:
     initdb:
       postInitApplicationSQL:
         - CREATE EXTENSION pg_snowid;
   ```
-- Its impossible to run this manually in database cluster, so needs to be set here.
+- For more details about shared preload libraries configuration in CloudNative PG, refer to the [official documentation](https://cloudnative-pg.io/documentation/1.17/postgresql_conf/#shared-preload-libraries)
 
 ### Terraform Example
 
@@ -55,6 +59,7 @@ Here's a complete example of how to configure the extension in Terraform, includ
 
 ```hcl
 cluster {
+  enableSuperuserAccess = true # Enable this or initdb
   initdb = {
     postInitApplicationSQL = ["CREATE EXTENSION pg_snowid;"]
   }
