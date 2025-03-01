@@ -24,7 +24,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN $HOME/.cargo/bin/rustup default stable
 
 RUN $HOME/.cargo/bin/cargo install cargo-pgrx --version=${PGRX} --locked
-RUN $HOME/.cargo/bin/cargo pgrx init --pg${PG_MAJOR} $(which pg_config) --release
+RUN $HOME/.cargo/bin/cargo pgrx init --pg${PG_MAJOR} $(which pg_config)
 
 COPY Cargo.toml Cargo.lock pg_snowid.control ./
 COPY src ./src
