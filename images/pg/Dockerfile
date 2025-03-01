@@ -1,8 +1,11 @@
 ARG PG_MAJOR
 ARG PG_MINOR
-ARG PGRX_VER
+ARG PGRX
 
 FROM postgres:${PG_MAJOR}.${PG_MINOR}-bookworm AS builder
+
+ARG PG_MAJOR
+ARG PGRX
 
 RUN apt-get update \
     && apt-get install -y \
@@ -20,8 +23,8 @@ RUN apt-get update \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN $HOME/.cargo/bin/rustup default stable
 
-RUN $HOME/.cargo/bin/cargo install cargo-pgrx --version=${PGRX_VER} --locked
-RUN $HOME/.cargo/bin/cargo pgrx init --pg17 $(which pg_config)
+RUN $HOME/.cargo/bin/cargo install cargo-pgrx --version=${PGRX} --locked
+RUN $HOME/.cargo/bin/cargo pgrx init --pg${PG_MAJOR} $(which pg_config)
 
 COPY Cargo.toml Cargo.lock pg_snowid.control ./
 COPY src ./src
@@ -30,6 +33,8 @@ COPY src ./src
 RUN $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config)
 
 FROM postgres:${PG_MAJOR}.${PG_MINOR}-bookworm
+
+ARG PG_MAJOR
 
 COPY --from=builder /usr/share/postgresql/${PG_MAJOR}/extension /usr/share/postgresql/${PG_MAJOR}/extension
 COPY --from=builder /usr/lib/postgresql/${PG_MAJOR}/lib /usr/lib/postgresql/${PG_MAJOR}/lib
