@@ -69,7 +69,7 @@ jobs:
           build-args: |
             PG_MAJOR=${{ env.PG_MAJOR }}
             PG_MINOR=${{ env.PG_MINOR }}
-            PGRX_VERSION=${{ env.PGRX }}
+            PGRX=${{ env.PGRX }}
           tags: |
             qeeqez/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}.${{ env.PG_MINOR }}
             qeeqez/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}
