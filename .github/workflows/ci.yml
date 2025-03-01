@@ -13,6 +13,11 @@ on:
     types:
       - created
 
+env:
+  PG_MAJOR: 17
+  PG_MINOR: 4
+  PGRX_VERSION: 0.12.9
+
 jobs:
   build_and_push:
     name: Build and push images
@@ -61,6 +66,11 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |  # Pass variables to Dockerfile as build arguments
+            PG_MAJOR=${{ env.PG_MAJOR }}
+            PG_MINOR=${{ env.PG_MINOR }}
+            PGRX_VERSION=${{ env.PGRX_VERSION }}
           tags: |
-            qeeqez/snowid-${{ matrix.pg_provider }}:v${{ steps.versions.outputs.TAG_VER }}-${{ matrix.pg_provider }}17
-            qeeqez/snowid-${{ matrix.pg_provider }}:17
+            qeeqez/snowid-${{ matrix.pg_provider }}:v${{ steps.versions.outputs.TAG_VER }}-${{ matrix.pg_provider }}${{ env.PG_MAJOR }}
+            qeeqez/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}.${{ env.PG_MINOR }}
+            qeeqez/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}
