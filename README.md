@@ -25,6 +25,14 @@
 - Node ID: 10 bits = 1,024 nodes (valid range: 6-16 bits)
 - Sequence: 12 bits = 4,096 IDs/ms/node
 
+**Base62 Representation:**
+```text
+Example: "2qPfVQh7Jw9"
+```
+- Uses characters 0-9, a-z, A-Z for more compact, URL-friendly IDs
+- Maximum length: 11 characters for any 64-bit integer
+- Preserves time-sorting property of numeric IDs
+
 ## 🎯 Installation
 
 <details>
@@ -80,7 +88,7 @@ SELECT snowid_get_node();
 ### Create Table with SnowID
 
 ```sql
--- Create a table with SnowID
+-- Create a table with SnowID (numeric format)
 CREATE TABLE users (
     id bigint PRIMARY KEY DEFAULT snowid_generate(1),  -- Use unique table_id (1)
     name text,
@@ -94,6 +102,14 @@ CREATE TABLE posts (
     content text,
     created_at timestamptz DEFAULT current_timestamp
 );
+
+-- Create a table with base62-encoded SnowID
+CREATE TABLE products (
+    id VARCHAR(11) PRIMARY KEY DEFAULT snowid_generate_base62(3),  -- Use unique table_id (3)
+    name text,
+    price numeric,
+    created_at timestamptz DEFAULT current_timestamp
+);
 ```
 
 > **Note**: Each table requires a unique positive integer ID (1-1024). The extension currently supports up to 1024 tables. If you need support for more tables, please [create an issue](https://github.com/qeeqez/snowid-postgres/issues) and we'll add this functionality.
@@ -101,8 +117,11 @@ CREATE TABLE posts (
 ### Extract ID Components
 
 ```sql
--- Extract timestamp from ID
+-- Extract timestamp from numeric ID
 SELECT snowid_get_timestamp(151819733950271234);
+
+-- Extract timestamp from base62 ID
+SELECT snowid_get_timestamp_base62('2qPfVQh7Jw9');
 
 -- View SnowID statistics
 SELECT snowid_stats();
