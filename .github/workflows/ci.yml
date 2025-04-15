@@ -62,7 +62,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: docker/build-push-action@v6
         with:
-          file: ./images/pg/Dockerfile
+          file: ./images/${{ matrix.pg_provider }}/Dockerfile
           context: .
           platforms: linux/amd64,linux/arm64
           push: true

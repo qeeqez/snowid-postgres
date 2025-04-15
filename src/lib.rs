@@ -8,6 +8,7 @@ use pgrx::prelude::*;
 use pgrx::shmem::PGRXSharedMemory;
 use pgrx::shmem::*;
 use snowid::SnowID;
+use std::ffi::CStr;
 use std::sync::atomic::{AtomicI16, Ordering};
 
 pg_module_magic!();
@@ -25,11 +26,13 @@ impl Default for SharedSnowID {
     }
 }
 
-static NODE_ID: PgAtomic<AtomicI16> = PgAtomic::new();
-static GENERATORS: PgLwLock<FnvIndexMap<i32, SharedSnowID, MAX_TABLES>> = PgLwLock::new();
+static NODE_ID: PgAtomic<AtomicI16> =
+    PgAtomic::new(unsafe { CStr::from_bytes_with_nul_unchecked(b"NODE_ID\0") });
+static GENERATORS: PgLwLock<FnvIndexMap<i32, SharedSnowID, MAX_TABLES>> =
+    PgLwLock::new(unsafe { CStr::from_bytes_with_nul_unchecked(b"GENERATORS\0") });
 
 #[pg_guard]
-pub extern "C" fn _PG_init() {
+pub extern "C-unwind" fn _PG_init() {
     pg_shmem_init!(NODE_ID);
     pg_shmem_init!(GENERATORS);
 }
@@ -57,7 +60,7 @@ fn snowid_get_node() -> i16 {
 
 #[pg_extern]
 fn snowid_generate(table_id: pg_sys::Oid) -> i64 {
-    snowid_generate_int(table_id.as_u32() as i32)
+    snowid_generate_int(table_id.to_u32() as i32)
 }
 
 /// Generates unique Snowflake ID for given table
@@ -99,7 +102,7 @@ fn snowid_generate_int(table_id: i32) -> i64 {
 
 #[pg_extern]
 fn snowid_generate_base62(table_id: pg_sys::Oid) -> String {
-    snowid_generate_base62_int(table_id.as_u32() as i32)
+    snowid_generate_base62_int(table_id.to_u32() as i32)
 }
 
 /// Generates unique base62-encoded Snowflake ID for given table
