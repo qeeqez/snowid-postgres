@@ -239,16 +239,6 @@ dependencies = [
 
 [[package]]
 name = "cargo_toml"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fbd1fe9db3ebf71b89060adaf7b0504c2d6a425cf061313099547e382c2e472"
-dependencies = [
- "serde",
- "toml",
-]
-
-[[package]]
-name = "cargo_toml"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02260d489095346e5cafd04dea8e8cb54d1d74fcd759022a9b72986ebe9a1257"
@@ -367,15 +357,6 @@ checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
 name = "convert_case"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb402b8d4c85569410425650ce3eddc7d698ed96d39a73f941b08fb63082f1e7"
-dependencies = [
- "unicode-segmentation",
-]
-
-[[package]]
-name = "convert_case"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baaaa0ecca5b51987b9423ccdc971514dd8b0bb7b4060b983d3664dad3f1f89f"
@@ -397,31 +378,6 @@ checksum = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
 dependencies = [
  "libc",
 ]
-
-[[package]]
-name = "crossbeam-deque"
-version = "0.8.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9dd111b7b7f7d55b72c0a6ae361660ee5853c9af73f70c3c2ef6858b950e2e51"
-dependencies = [
- "crossbeam-epoch",
- "crossbeam-utils",
-]
-
-[[package]]
-name = "crossbeam-epoch"
-version = "0.9.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b82ac4a3c2ca9c3460964f020e1402edd5753411d7737aa39c3714ad1b5420e"
-dependencies = [
- "crossbeam-utils",
-]
-
-[[package]]
-name = "crossbeam-utils"
-version = "0.8.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "crypto-common"
@@ -1058,6 +1014,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "objc2-core-foundation"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "daeaf60f25471d26948a1c2f840e3f7d86f4109e3af4e8e4b5cd70c39690d925"
+dependencies = [
+ "bitflags",
+]
+
+[[package]]
 name = "object"
 version = "0.36.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1129,16 +1094,6 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "petgraph"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3672b37090dbd86368a4145bc067582552b29c27377cad4e0a306c97f9bd7772"
-dependencies = [
- "fixedbitset",
- "indexmap",
-]
-
-[[package]]
-name = "petgraph"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a98c6720655620a521dcc722d0ad66cd8afd5d86e34a89ef691c50b7b24de06"
@@ -1154,33 +1109,9 @@ name = "pg_snowid"
 version = "0.2.0"
 dependencies = [
  "heapless",
- "pgrx 0.14.1",
+ "pgrx",
  "pgrx-tests",
  "snowid",
-]
-
-[[package]]
-name = "pgrx"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74fb2c1fbb9edc39097200f882ee58550e68f519db52309e94d894a2ad1ddf07"
-dependencies = [
- "atomic-traits",
- "bitflags",
- "bitvec",
- "enum-map",
- "heapless",
- "libc",
- "once_cell",
- "pgrx-macros 0.13.1",
- "pgrx-pg-sys 0.13.1",
- "pgrx-sql-entity-graph 0.13.1",
- "seahash",
- "serde",
- "serde_cbor",
- "serde_json",
- "thiserror 2.0.12",
- "uuid",
 ]
 
 [[package]]
@@ -1196,33 +1127,15 @@ dependencies = [
  "heapless",
  "libc",
  "once_cell",
- "pgrx-macros 0.14.1",
- "pgrx-pg-sys 0.14.1",
- "pgrx-sql-entity-graph 0.14.1",
+ "pgrx-macros",
+ "pgrx-pg-sys",
+ "pgrx-sql-entity-graph",
  "seahash",
  "serde",
  "serde_cbor",
  "serde_json",
  "thiserror 2.0.12",
  "uuid",
-]
-
-[[package]]
-name = "pgrx-bindgen"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bba29f6257193d1795eee0f96e72d368b30e95ab50d93397b5a76cc7784ddef"
-dependencies = [
- "bindgen",
- "cc",
- "clang-sys",
- "eyre",
- "pgrx-pg-config 0.13.1",
- "proc-macro2",
- "quote",
- "shlex",
- "syn",
- "walkdir",
 ]
 
 [[package]]
@@ -1235,7 +1148,7 @@ dependencies = [
  "cc",
  "clang-sys",
  "eyre",
- "pgrx-pg-config 0.14.1",
+ "pgrx-pg-config",
  "proc-macro2",
  "quote",
  "regex",
@@ -1246,44 +1159,14 @@ dependencies = [
 
 [[package]]
 name = "pgrx-macros"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1f9d2a6a94d8ea1a722ea489048acd203c6ba9b62f70edac587dbe8e1fb4585"
-dependencies = [
- "pgrx-sql-entity-graph 0.13.1",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "pgrx-macros"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "868ae3cb1762dcca0e236d4b5368315d4f377acbfff31d8fad9f47394d2e4bcd"
 dependencies = [
- "pgrx-sql-entity-graph 0.14.1",
+ "pgrx-sql-entity-graph",
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "pgrx-pg-config"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05be49ab66e458f4c164b45daa885e53dbbadc4f37bb47e8b5d85d5b4d9a0be4"
-dependencies = [
- "cargo_toml 0.21.0",
- "eyre",
- "home",
- "owo-colors",
- "pathsearch",
- "serde",
- "serde_json",
- "thiserror 2.0.12",
- "toml",
- "url",
 ]
 
 [[package]]
@@ -1292,7 +1175,7 @@ version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "421be70840655a502381d4ac84b263da83c6714018e27bfdcd7c48f32ff60ef6"
 dependencies = [
- "cargo_toml 0.22.1",
+ "cargo_toml",
  "eyre",
  "home",
  "owo-colors",
@@ -1302,21 +1185,6 @@ dependencies = [
  "thiserror 2.0.12",
  "toml",
  "url",
-]
-
-[[package]]
-name = "pgrx-pg-sys"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a360ad31a947674a46e72a39881f1be8afe958157ae44cf8ad6ed70b984c0f40"
-dependencies = [
- "cee-scape",
- "libc",
- "pgrx-bindgen 0.13.1",
- "pgrx-macros 0.13.1",
- "pgrx-sql-entity-graph 0.13.1",
- "serde",
- "sptr",
 ]
 
 [[package]]
@@ -1327,27 +1195,11 @@ checksum = "c844a49ee575cf4bd3340c483e49160a99b1bd8c5fd2e87fc7a9231566cb07f2"
 dependencies = [
  "cee-scape",
  "libc",
- "pgrx-bindgen 0.14.1",
- "pgrx-macros 0.14.1",
- "pgrx-sql-entity-graph 0.14.1",
+ "pgrx-bindgen",
+ "pgrx-macros",
+ "pgrx-sql-entity-graph",
  "serde",
  "sptr",
-]
-
-[[package]]
-name = "pgrx-sql-entity-graph"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8f625bb35d59b2d6f308ed5d1b6da3783c8514d47f353ec23a8f05da0fef6f4"
-dependencies = [
- "convert_case 0.7.1",
- "eyre",
- "petgraph 0.7.1",
- "proc-macro2",
- "quote",
- "syn",
- "thiserror 2.0.12",
- "unescape",
 ]
 
 [[package]]
@@ -1356,9 +1208,9 @@ version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "391595ab6d13f65728bdd691fdd58e69bb31f1f092886ed0a11c838de1d01ae9"
 dependencies = [
- "convert_case 0.8.0",
+ "convert_case",
  "eyre",
- "petgraph 0.8.1",
+ "petgraph",
  "proc-macro2",
  "quote",
  "syn",
@@ -1368,18 +1220,18 @@ dependencies = [
 
 [[package]]
 name = "pgrx-tests"
-version = "0.13.1"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da3d8ab6d06831ad303a73e3b940df32792b6b06a2aaae3bdf416f83763fb09d"
+checksum = "c526ae1a3c5cdf10fb4a4a7179759d557da1724b38bcfee3f1d0d8fb5fd67509"
 dependencies = [
  "clap-cargo",
  "eyre",
  "libc",
  "owo-colors",
  "paste",
- "pgrx 0.13.1",
- "pgrx-macros 0.13.1",
- "pgrx-pg-config 0.13.1",
+ "pgrx",
+ "pgrx-macros",
+ "pgrx-pg-config",
  "postgres",
  "proptest",
  "rand 0.9.0",
@@ -1388,7 +1240,9 @@ dependencies = [
  "serde_json",
  "shlex",
  "sysinfo",
+ "tempfile",
  "thiserror 2.0.12",
+ "winapi",
 ]
 
 [[package]]
@@ -1590,26 +1444,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d25bf25ec5ae4a3f1b92f929810509a2f53d7dca2f50b794ff57e3face536c8f"
 dependencies = [
  "rand_core 0.6.4",
-]
-
-[[package]]
-name = "rayon"
-version = "1.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b418a60154510ca1a002a752ca9714984e21e4241e804d32555251faf8b78ffa"
-dependencies = [
- "either",
- "rayon-core",
-]
-
-[[package]]
-name = "rayon-core"
-version = "1.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
-dependencies = [
- "crossbeam-deque",
- "crossbeam-utils",
 ]
 
 [[package]]
@@ -1920,15 +1754,14 @@ dependencies = [
 
 [[package]]
 name = "sysinfo"
-version = "0.33.1"
+version = "0.34.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fc858248ea01b66f19d8e8a6d55f41deaf91e9d495246fd01368d99935c6c01"
+checksum = "a4b93974b3d3aeaa036504b8eefd4c039dced109171c1ae973f1dc63b2c7e4b2"
 dependencies = [
- "core-foundation-sys",
  "libc",
  "memchr",
  "ntapi",
- "rayon",
+ "objc2-core-foundation",
  "windows",
 ]
 
@@ -1940,9 +1773,9 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "tempfile"
-version = "3.19.0"
+version = "3.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "488960f40a3fd53d72c2a29a58722561dee8afdd175bd88e3db4677d7b2ba600"
+checksum = "7437ac7763b9b123ccf33c338a5cc1bac6f69b45a136c19bdd8a65e3916435bf"
 dependencies = [
  "fastrand",
  "getrandom 0.3.1",
