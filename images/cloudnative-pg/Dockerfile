@@ -32,6 +32,9 @@ COPY src ./src
 # install snowid
 RUN $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config) --release
 
+RUN usermod -u 26 postgres
+USER 26
+
 FROM ghcr.io/cloudnative-pg/postgresql:${PG_MAJOR}.${PG_MINOR}-bookworm
 
 ARG PG_MAJOR
@@ -41,4 +44,5 @@ USER root
 COPY --from=builder /usr/share/postgresql/${PG_MAJOR}/extension /usr/share/postgresql/${PG_MAJOR}/extension
 COPY --from=builder /usr/lib/postgresql/${PG_MAJOR}/lib /usr/lib/postgresql/${PG_MAJOR}/lib
 
+RUN usermod -u 26 postgres
 USER 26
