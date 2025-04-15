@@ -28,6 +28,7 @@ RUN $HOME/.cargo/bin/cargo pgrx init --pg${PG_MAJOR} $(which pg_config)
 
 COPY Cargo.toml Cargo.lock pg_snowid.control ./
 COPY src ./src
+COPY sql ./sql
 
 # install snowid
 RUN $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config) --release
