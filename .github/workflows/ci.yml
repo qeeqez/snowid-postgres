@@ -48,14 +48,14 @@ jobs:
           echo "TAG_VER=$(/usr/local/bin/stoml Trunk.toml extension.version)" >> $GITHUB_OUTPUT
           echo "PGRX_VER=$(/usr/local/bin/stoml Cargo.toml dependencies.pgrx)" >> $GITHUB_OUTPUT
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Build and push -- Releases
         # only publish release events
@@ -73,3 +73,5 @@ jobs:
           tags: |
             qeeqez/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}.${{ env.PG_MINOR }}
             qeeqez/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
