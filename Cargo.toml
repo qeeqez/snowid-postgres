@@ -2,7 +2,7 @@
 name = "pg_snowid"
 version = "0.2.6"
 edition = "2021"
-rust-version = "1.85.0"
+rust-version = "1.88.0"
 
 authors = ["Maksim Sasnouski <qeeqez@gmail.com>"]
 description = "Generate Snowflake-like IDs with speed and thread-safety in PostgreSQL"
@@ -31,12 +31,12 @@ pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
 pg_test = []
 
 [dependencies]
-pgrx = ">= 0.14.3"
+pgrx = ">= 0.15.0"
 snowid = "0.1.6"
 heapless = "0.8.0"
 
 [dev-dependencies]
-pgrx-tests = ">= 0.14.3"
+pgrx-tests = ">= 0.15.0"
 
 [profile.dev]
 panic = "unwind"
