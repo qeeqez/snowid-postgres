@@ -1,5 +1,5 @@
 comment = 'Generate Snowflake-like IDs with speed and thread-safety in PostgreSQL'
-default_version = '0.2.6'
+default_version = '0.3.0'
 module_pathname = '$libdir/pg_snowid'
 relocatable = false
 superuser = false
