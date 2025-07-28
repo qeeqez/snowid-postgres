@@ -32,7 +32,7 @@ pg_test = []
 
 [dependencies]
 pgrx = ">= 0.15.0"
-snowid = "0.1.6"
+snowid = "0.1.7"
 heapless = "0.8.0"
 
 [dev-dependencies]
