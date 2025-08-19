@@ -1,10 +1,10 @@
 ARG PG_MAJOR=17
-ARG PGRX=0.15.0
+ARG PGRX=0.16.0
 
 FROM quay.io/coredb/pgrx-builder:pg${PG_MAJOR}-pgrx${PGRX}
 
 ARG PG_MAJOR=17
-ARG PGRX=0.15.0
+ARG PGRX=0.16.0
 
 WORKDIR /app
 
