@@ -36,7 +36,8 @@ static GENERATORS: PgLwLock<AssertPGRXSharedMemory<FnvIndexMap<i32, SharedSnowID
 #[pg_guard]
 pub extern "C-unwind" fn _PG_init() {
     pg_shmem_init!(NODE_ID);
-    pg_shmem_init!(GENERATORS);
+    // heapless containers require explicit initialization via AssertPGRXSharedMemory wrapper
+    pg_shmem_init!(GENERATORS = unsafe { AssertPGRXSharedMemory::new(Default::default()) });
 }
 
 /// Sets node ID (0-1023) for this PostgreSQL instance
