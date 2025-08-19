@@ -41,8 +41,8 @@ Example: "2qPfVQh7Jw9"
 Use our pre-built PostgreSQL 17 image with SnowID extension:
 
 ```bash
-docker pull qeeqez/snowid:v0.1.0-pg17
-docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 qeeqez/snowid:v0.1.0-pg17
+docker pull rixl/snowid-pg:17
+docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 qeeqez/snowid-pg:17
 ```
 
 The image comes with:

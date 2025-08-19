@@ -4,7 +4,7 @@ version = "0.4.0"
 edition = "2021"
 rust-version = "1.89.0"
 
-authors = ["Maksim Sasnouski <qeeqez@gmail.com>"]
+authors = ["Maksim Sasnouski <maksim@rixl.com>"]
 description = "Generate Snowflake-like IDs with speed and thread-safety in PostgreSQL"
 
 license = "MIT"
