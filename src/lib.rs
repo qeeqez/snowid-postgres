@@ -6,7 +6,7 @@ use pgrx::lwlock::PgLwLock;
 use pgrx::pg_shmem_init;
 use pgrx::prelude::*;
 use pgrx::shmem::PGRXSharedMemory;
-use pgrx::shmem::*;
+use pgrx::shmem::AssertPGRXSharedMemory;
 use snowid::SnowID;
 use std::ffi::CStr;
 use std::sync::atomic::{AtomicI16, Ordering};
@@ -26,10 +26,12 @@ impl Default for SharedSnowID {
     }
 }
 
-static NODE_ID: PgAtomic<AtomicI16> =
-    PgAtomic::new(unsafe { CStr::from_bytes_with_nul_unchecked(b"NODE_ID\0") });
-static GENERATORS: PgLwLock<FnvIndexMap<i32, SharedSnowID, MAX_TABLES>> =
-    PgLwLock::new(unsafe { CStr::from_bytes_with_nul_unchecked(b"GENERATORS\0") });
+static NODE_ID: PgAtomic<AtomicI16> = unsafe {
+    PgAtomic::new(CStr::from_bytes_with_nul_unchecked(b"NODE_ID\0"))
+};
+static GENERATORS: PgLwLock<AssertPGRXSharedMemory<FnvIndexMap<i32, SharedSnowID, MAX_TABLES>>> = unsafe {
+    PgLwLock::new(CStr::from_bytes_with_nul_unchecked(b"GENERATORS\0"))
+};
 
 #[pg_guard]
 pub extern "C-unwind" fn _PG_init() {
