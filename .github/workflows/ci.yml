@@ -71,7 +71,7 @@ jobs:
             PG_MINOR=${{ env.PG_MINOR }}
             PGRX=${{ env.PGRX }}
           tags: |
-            qeeqez/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}.${{ env.PG_MINOR }}
-            qeeqez/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}
+            rixl/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}.${{ env.PG_MINOR }}
+            rixl/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
