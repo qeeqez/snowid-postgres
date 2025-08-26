@@ -1,6 +1,6 @@
 #![allow(unexpected_cfgs)]
 
-use heapless::FnvIndexMap;
+use heapless::index_map::FnvIndexMap;
 use pgrx::atomics::PgAtomic;
 use pgrx::lwlock::PgLwLock;
 use pgrx::pg_shmem_init;

@@ -1,0 +1,2 @@
+-- Upgrade script for pg_snowid from version 0.4.0 to 0.4.1
+-- No SQL schema changes in this version. Underlying library updated.

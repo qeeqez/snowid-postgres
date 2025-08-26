@@ -1,6 +1,6 @@
 [package]
 name = "pg_snowid"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 rust-version = "1.89.0"
 
@@ -31,12 +31,12 @@ pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
 pg_test = []
 
 [dependencies]
-pgrx = ">= 0.16.0"
+pgrx = "0.16.0"
 snowid = "0.2.0"
 heapless = "0.9.1"
 
 [dev-dependencies]
-pgrx-tests = ">= 0.16.0"
+pgrx-tests = "0.16.0"
 
 [profile.dev]
 panic = "unwind"
