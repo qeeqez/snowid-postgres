@@ -33,7 +33,7 @@ pg_test = []
 [dependencies]
 pgrx = ">= 0.16.0"
 snowid = "0.2.0"
-heapless = "0.8.0"
+heapless = "0.9.1"
 
 [dev-dependencies]
 pgrx-tests = ">= 0.16.0"
