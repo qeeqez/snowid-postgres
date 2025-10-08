@@ -16,7 +16,7 @@ on:
 env:
   PG_MAJOR: 17
   PG_MINOR: 6
-  PGRX: 0.16.0
+  PGRX: 0.16.1
 
 jobs:
   build_and_push:

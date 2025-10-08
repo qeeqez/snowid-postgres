@@ -8,7 +8,6 @@ use pgrx::prelude::*;
 use pgrx::shmem::PGRXSharedMemory;
 use pgrx::shmem::AssertPGRXSharedMemory;
 use snowid::SnowID;
-use std::ffi::CStr;
 use std::sync::atomic::{AtomicI16, Ordering};
 
 pg_module_magic!();
@@ -26,12 +25,10 @@ impl Default for SharedSnowID {
     }
 }
 
-static NODE_ID: PgAtomic<AtomicI16> = unsafe {
-    PgAtomic::new(CStr::from_bytes_with_nul_unchecked(b"NODE_ID\0"))
-};
-static GENERATORS: PgLwLock<AssertPGRXSharedMemory<FnvIndexMap<i32, SharedSnowID, MAX_TABLES>>> = unsafe {
-    PgLwLock::new(CStr::from_bytes_with_nul_unchecked(b"GENERATORS\0"))
-};
+// SAFETY: C-string literals are null-terminated and valid for static initialization
+static NODE_ID: PgAtomic<AtomicI16> = unsafe { PgAtomic::new(c"NODE_ID") };
+static GENERATORS: PgLwLock<AssertPGRXSharedMemory<FnvIndexMap<i32, SharedSnowID, MAX_TABLES>>> =
+    unsafe { PgLwLock::new(c"GENERATORS") };
 
 #[pg_guard]
 pub extern "C-unwind" fn _PG_init() {
@@ -105,9 +102,8 @@ fn create_generator_for_table(
     table_id: i32,
 ) {
     let node_id = NODE_ID.get().load(Ordering::Relaxed);
-    let snowid = match SnowID::new(node_id as u16) {
-        Ok(id) => id,
-        Err(e) => error!("Failed to create SnowID generator: {}", e),
+    let Ok(snowid) = SnowID::new(node_id as u16) else {
+        error!("Failed to create SnowID generator for node {}", node_id);
     };
     let shared_snowid = SharedSnowID(snowid);
     if generators.insert(table_id, shared_snowid).is_err() {
@@ -123,8 +119,8 @@ fn create_generator_for_table(
 fn with_table_generator<R>(table_id: i32, f: impl Fn(&SnowID) -> R) -> R {
     // Fast path under shared lock
     let generators_shared = GENERATORS.share();
-    if let Some(gen) = generators_shared.get(&table_id) {
-        return f(&gen.0);
+    if let Some(generator) = generators_shared.get(&table_id) {
+        return f(&generator.0);
     }
     drop(generators_shared);
 
@@ -168,8 +164,8 @@ fn snowid_get_timestamp_base62(encoded_id: &str) -> i64 {
 fn with_any_generator<R>(f: impl Fn(&SnowID) -> R) -> R {
     // Fast path under shared lock
     let generators_shared = GENERATORS.share();
-    if let Some((_, gen)) = generators_shared.iter().next() {
-        return f(&gen.0);
+    if let Some((_, generator)) = generators_shared.iter().next() {
+        return f(&generator.0);
     }
     drop(generators_shared);
 
@@ -177,14 +173,12 @@ fn with_any_generator<R>(f: impl Fn(&SnowID) -> R) -> R {
     let mut generators = GENERATORS.exclusive();
     if generators.is_empty() {
         let node_id = NODE_ID.get().load(Ordering::Relaxed);
-        match SnowID::new(node_id as u16) {
-            Ok(snowid) => {
-                let shared_snowid = SharedSnowID(snowid);
-                if generators.insert(0, shared_snowid).is_err() {
-                    error!("Failed to insert default generator");
-                }
-            }
-            Err(e) => error!("Failed to create default generator: {}", e),
+        let Ok(snowid) = SnowID::new(node_id as u16) else {
+            error!("Failed to create default generator for node {}", node_id);
+        };
+        let shared_snowid = SharedSnowID(snowid);
+        if generators.insert(0, shared_snowid).is_err() {
+            error!("Failed to insert default generator");
         }
     }
 
