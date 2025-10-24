@@ -2,7 +2,7 @@ ARG PG_MAJOR
 ARG PG_MINOR
 ARG PGRX
 
-FROM postgres:${PG_MAJOR}.${PG_MINOR}-bookworm AS builder
+FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie AS builder
 
 ARG PG_MAJOR
 ARG PGRX
@@ -37,7 +37,7 @@ COPY src ./src
 # install snowid
 RUN $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config)
 
-FROM postgres:${PG_MAJOR}.${PG_MINOR}-bookworm
+FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie
 
 ARG PG_MAJOR
 

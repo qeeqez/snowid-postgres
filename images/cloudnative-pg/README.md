@@ -1,11 +1,11 @@
 # CloudNative PG Custom Image with pg_snowid Extension
 
-This is a custom PostgreSQL image built for CloudNative PG that includes the pg_snowid extension. The image is based on the official CloudNative PG image `ghcr.io/cloudnative-pg/postgresql:17.6-bookworm` and includes pre-built pg_snowid extension.
+This is a custom PostgreSQL image built for CloudNative PG that includes the pg_snowid extension. The image is based on the official CloudNative PG image `ghcr.io/cloudnative-pg/postgresql:18.0-trixie` and includes pre-built pg_snowid extension.
 
 ## Image Details
 
-- Base Image: `ghcr.io/cloudnative-pg/postgresql:17.6-bookworm`
-- PostgreSQL Version: 17.6
+- Base Image: `ghcr.io/cloudnative-pg/postgresql:18.0-trixie`
+- PostgreSQL Version: 18.0
 - Included Extension: pg_snowid
 
 ## Usage
