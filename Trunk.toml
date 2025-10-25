@@ -1,6 +1,6 @@
 [extension]
 name = "pg_snowid"
-version = "0.5.0"
+version = "0.6.0"
 repository = "https://github.com/qeeqez/snowid-postgres"
 license = "PostgreSQL"
 description = "Generate Snowflake-like IDs with speed and thread-safety in PostgreSQL"
@@ -13,6 +13,6 @@ categories = [
 loadable_libraries = [{ library_name = "pg_snowid", requires_restart = true }]
 
 [build]
-postgres_version = "17"
+postgres_version = "18"
 platform = "linux/arm64"
 dockerfile = "Dockerfile"

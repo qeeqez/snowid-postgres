@@ -14,8 +14,6 @@ on:
       - created
 
 env:
-  PG_MAJOR: 17
-  PG_MINOR: 6
   PGRX: 0.16.1
 
 jobs:
@@ -25,6 +23,11 @@ jobs:
     strategy:
       matrix:
         pg_provider: [ pg, cloudnative-pg ]
+        pg_version:
+          - major: 17
+            minor: 6
+          - major: 18
+            minor: 0
     runs-on: ubuntu-24.04
     outputs:
       short_sha: ${{ steps.versions.outputs.SHORT_SHA }}
@@ -67,11 +70,11 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            PG_MAJOR=${{ env.PG_MAJOR }}
-            PG_MINOR=${{ env.PG_MINOR }}
+            PG_MAJOR=${{ matrix.pg_version.major }}
+            PG_MINOR=${{ matrix.pg_version.minor }}
             PGRX=${{ env.PGRX }}
           tags: |
-            rixl/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}.${{ env.PG_MINOR }}
-            rixl/snowid-${{ matrix.pg_provider }}:${{ env.PG_MAJOR }}
+            rixl/snowid-${{ matrix.pg_provider }}:${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
+            rixl/snowid-${{ matrix.pg_provider }}:${{ matrix.pg_version.major }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
