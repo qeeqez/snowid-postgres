@@ -33,7 +33,7 @@ jobs:
       short_sha: ${{ steps.versions.outputs.SHORT_SHA }}
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install stoml and pg-trunk
         shell: bash
