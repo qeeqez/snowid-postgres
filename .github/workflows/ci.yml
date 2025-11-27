@@ -24,8 +24,6 @@ jobs:
       matrix:
         pg_provider: [ pg, cloudnative-pg ]
         pg_version:
-          - major: 17
-            minor: 7
           - major: 18
             minor: 1
     runs-on: ubuntu-24.04
