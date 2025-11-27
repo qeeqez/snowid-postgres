@@ -7,17 +7,21 @@ FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie AS builder
 ARG PG_MAJOR
 ARG PGRX
 
-RUN apt-get update \
-    && apt-get install -y \
-	ca-certificates \
+RUN apt-get update && apt-get install -y ca-certificates curl && \
+	install -d /usr/share/postgresql-common/pgdg && \
+	curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc && \
+	. /etc/os-release && \
+	sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list" && \
+	apt-get update
+
+RUN apt-get install -y \
 	clang \
-	curl \
 	gcc \
 	git \
 	libssl-dev \
 	make \
-	pkg-config \
-	postgresql-server-dev-17
+	pkg-config
+RUN apt-get install -y postgresql-server-dev-${PG_MAJOR}
 
 # Install Rust dependencies
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
