@@ -1,18 +1,23 @@
 # Changelog
 
-## [1.0.0](https://github.com/qeeqez/snowid-postgres/compare/v0.7.0...v1.0.0) (2026-01-29)
-
+## [1.0.0](https://github.com/qeeqez/snowid-postgres/compare/v0.7.0...v1.0.0) (2026-01-30)
 
 ### ⚠ BREAKING CHANGES
 
-* **deps:** bump snowid to v1.0.1
+*   **deps:** Upgraded internal `snowid` generator to v1.0.1. This brings massive performance improvements/optimizations but updates internal dependencies.
 
 ### Features
 
-* **deps:** bump snowid to v1.0.1 ([de4d0d6](https://github.com/qeeqez/snowid-postgres/commit/de4d0d699c1e2266cbf9fa533152aa8cdb44e4d5))
-* setup release-please for snowid-postgres ([ac307db](https://github.com/qeeqez/snowid-postgres/commit/ac307dbf0ebaa1b7442c25ef536371670ee9f173))
-
+*   **performance:** Leveraging `snowid` v1.0.1 (Rust optimized) for ~20x faster time component generation and zero-allocation Base62 encoding within Postgres.
+*   **ci:** Migrated to `release-please` for fully automated semantic releases and changelog management.
+*   **ci:** Implemented robust release workflow that triggers Docker builds only when a release is officially created.
 
 ### Bug Fixes
 
-* **ci:** ensure string inputs for docker push action ([2509bbf](https://github.com/qeeqez/snowid-postgres/commit/2509bbf6c6a03f627cccdeea934f9a8b24f90f58))
+*   **ci:** Fixed boolean input validation for Docker push actions in CI workflows.
+*   **ci:** Resolved workflow triggers to prevent accidental tag-based builds.
+
+### Miscellaneous
+
+*   **deps:** Updated `heapless`, `pgrx` and other internal dependencies for better stability and compatibility with latest Postgres versions.
+*   **docs:** Updated documentation to reflect 1.0.0 status.
