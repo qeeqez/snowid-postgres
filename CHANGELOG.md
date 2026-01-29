@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/qeeqez/snowid-postgres/compare/v1.0.0...v1.0.1) (2026-01-29)
+
+
+### Bug Fixes
+
+* **release:** proper version set ([8421cf0](https://github.com/qeeqez/snowid-postgres/commit/8421cf0ad8ad494bfdb65963f14e9dd10ee3da1e))
+
 ## [1.0.0](https://github.com/qeeqez/snowid-postgres/compare/v0.7.0...v1.0.0) (2026-01-30)
 
 ### ⚠ BREAKING CHANGES

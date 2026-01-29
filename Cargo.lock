@@ -930,7 +930,7 @@ dependencies = [
 
 [[package]]
 name = "pg_snowid"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "heapless",
  "pgrx",
