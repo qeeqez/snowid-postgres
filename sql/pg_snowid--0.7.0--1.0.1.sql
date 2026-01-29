@@ -1,2 +1,2 @@
--- Upgrade script for pg_snowid from version 0.7.0 to 1.0.0
+-- Upgrade script for pg_snowid from version 0.7.0 to 1.0.1
 -- No SQL schema changes in this version. Underlying library updated.
