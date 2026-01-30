@@ -2,8 +2,7 @@ name: release-please
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 permissions:
   contents: write
@@ -22,7 +21,6 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # Run CI build and publish when a release is created
   release-build:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
