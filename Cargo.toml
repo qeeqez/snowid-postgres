@@ -32,7 +32,7 @@ pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
 pg_test = []
 
 [dependencies]
-pgrx = "0.16.1"
+pgrx = "0.17.0"
 snowid = "2.0.0"
 heapless = "0.9.2"
 
