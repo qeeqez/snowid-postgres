@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/qeeqez/snowid-postgres/compare/v2.0.0...v2.1.0) (2026-02-11)
+
+
+### Features
+
+* migrate to pgrx 0.17.0 ([00eaf2d](https://github.com/qeeqez/snowid-postgres/commit/00eaf2dc6c78508c0420adaa6c751c8c98166bde))
+
 ## [2.0.0](https://github.com/qeeqez/snowid-postgres/compare/v1.0.1...v2.0.0) (2026-01-31)
 
 
