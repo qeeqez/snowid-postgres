@@ -10,9 +10,6 @@ on:
         type: boolean
         default: false
 
-env:
-  PGRX: 0.17.0
-
 jobs:
   build_and_push:
     name: Build and Publish
@@ -22,7 +19,9 @@ jobs:
       matrix:
         pg_provider: [ pg, cloudnative-pg ]
         pg_version:
-          - { major: 18, minor: 1 }
+          - { major: 18, minor: 1, is_latest: false }
+          - { major: 18, minor: 2, is_latest: false }
+          - { major: 18, minor: 3, is_latest: true }
 
     outputs:
       short_sha: ${{ steps.versions.outputs.SHORT_SHA }}
@@ -30,21 +29,12 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v6
 
-      - name: Install stoml and pg-trunk
-        shell: bash
-        run: |
-          set -xe
-          wget https://github.com/freshautomations/stoml/releases/download/v0.7.1/stoml_linux_amd64 &> /dev/null
-          mv stoml_linux_amd64 stoml
-          chmod +x stoml
-          sudo mv stoml /usr/local/bin/
-
       - name: Set version strings
         id: versions
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "TAG_VER=$(/usr/local/bin/stoml Trunk.toml extension.version)" >> $GITHUB_OUTPUT
-          echo "PGRX_VER=$(/usr/local/bin/stoml Cargo.toml dependencies.pgrx)" >> $GITHUB_OUTPUT
+          echo "TAG_VER=$(yq -p toml '.extension.version' Trunk.toml)" >> $GITHUB_OUTPUT
+          echo "PGRX_VER=$(yq -p toml '.dependencies.pgrx' Cargo.toml)" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -56,6 +46,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Generate Docker tags
+        id: docker_tags
+        run: |
+          TAGS="rixl/snowid-${{ matrix.pg_provider }}:${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}"
+          if [ "${{ matrix.pg_version.is_latest }}" == "true" ]; then
+            TAGS="$TAGS,rixl/snowid-${{ matrix.pg_provider }}:${{ matrix.pg_version.major }}"
+          fi
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
       - name: Build and push -- Releases
         uses: docker/build-push-action@v6
         with:
@@ -66,9 +65,7 @@ jobs:
           build-args: |
             PG_MAJOR=${{ matrix.pg_version.major }}
             PG_MINOR=${{ matrix.pg_version.minor }}
-            PGRX=${{ env.PGRX }}
-          tags: |
-            rixl/snowid-${{ matrix.pg_provider }}:${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
-            rixl/snowid-${{ matrix.pg_provider }}:${{ matrix.pg_version.major }}
+            PGRX=${{ steps.versions.outputs.PGRX_VER }}
+          tags: ${{ steps.docker_tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
