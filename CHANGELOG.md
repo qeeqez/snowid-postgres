@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.1.1](https://github.com/qeeqez/snowid-postgres/compare/v2.1.0...v2.1.1) (2026-02-26)
+
+
+### Bug Fixes
+
+* bump dependencies ([e488b21](https://github.com/qeeqez/snowid-postgres/commit/e488b21089f848b0b84c5d4a59a9495bc45ab82d))
+* provide builds for multiple Postgres versions ([aedd8c0](https://github.com/qeeqez/snowid-postgres/commit/aedd8c032ae0297ba01d46ef96daeadfaaa9951a))
+* release 2.1.1 ([6f6dbb9](https://github.com/qeeqez/snowid-postgres/commit/6f6dbb90b4a4421ab34d27be93baa5b1fa4d96d9))
+
 ## [2.1.0](https://github.com/qeeqez/snowid-postgres/compare/v2.0.0...v2.1.0) (2026-02-11)
 
 
