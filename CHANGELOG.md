@@ -1,5 +1,36 @@
 # Changelog
 
+## [3.0.0](https://github.com/qeeqez/snowid-postgres/compare/v2.1.1...v3.0.0) (2026-02-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* **release:** snowid-rust 2.0.0
+* **deps:** bump snowid to v1.0.1
+
+### Features
+
+* **deps:** bump snowid to v1.0.1 ([de4d0d6](https://github.com/qeeqez/snowid-postgres/commit/de4d0d699c1e2266cbf9fa533152aa8cdb44e4d5))
+* migrate to pgrx 0.17.0 ([00eaf2d](https://github.com/qeeqez/snowid-postgres/commit/00eaf2dc6c78508c0420adaa6c751c8c98166bde))
+* **release:** snowid-rust 2.0.0 ([883c00e](https://github.com/qeeqez/snowid-postgres/commit/883c00e6a4dbf0d77d1546869e16c5e0577e2505))
+* setup release-please for snowid-postgres ([ac307db](https://github.com/qeeqez/snowid-postgres/commit/ac307dbf0ebaa1b7442c25ef536371670ee9f173))
+
+
+### Bug Fixes
+
+* bump dependencies ([e488b21](https://github.com/qeeqez/snowid-postgres/commit/e488b21089f848b0b84c5d4a59a9495bc45ab82d))
+* **ci:** ensure string inputs for docker push action ([2509bbf](https://github.com/qeeqez/snowid-postgres/commit/2509bbf6c6a03f627cccdeea934f9a8b24f90f58))
+* **ci:** non triggering job on release ([f50b454](https://github.com/qeeqez/snowid-postgres/commit/f50b454d3034b022843532cd1ba25b7ef9015e91))
+* improve build speed ([a2e8127](https://github.com/qeeqez/snowid-postgres/commit/a2e81271f92feb3b44d058a5b3263836c39866cb))
+* provide builds for multiple Postgres versions ([aedd8c0](https://github.com/qeeqez/snowid-postgres/commit/aedd8c032ae0297ba01d46ef96daeadfaaa9951a))
+* release 2.1.1 ([6f6dbb9](https://github.com/qeeqez/snowid-postgres/commit/6f6dbb90b4a4421ab34d27be93baa5b1fa4d96d9))
+* **release:** proper version set ([8421cf0](https://github.com/qeeqez/snowid-postgres/commit/8421cf0ad8ad494bfdb65963f14e9dd10ee3da1e))
+
+
+### Performance Improvements
+
+* shared lock for reads, exclusive for writes ([fabc2c9](https://github.com/qeeqez/snowid-postgres/commit/fabc2c92cd9efac41bdb782ee2d4ca2aee93d28d))
+
 ## [2.1.1](https://github.com/qeeqez/snowid-postgres/compare/v2.1.0...v2.1.1) (2026-02-26)
 
 

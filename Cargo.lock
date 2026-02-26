@@ -954,7 +954,7 @@ dependencies = [
 
 [[package]]
 name = "pg_snowid"
-version = "2.1.2"
+version = "3.0.0"
 dependencies = [
  "heapless",
  "pgrx",
