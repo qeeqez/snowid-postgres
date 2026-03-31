@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2](https://github.com/qeeqez/snowid-postgres/compare/v2.1.1...v2.1.2) (2026-03-31)
+
+
+### Bug Fixes
+
+* faster base62 ([183f100](https://github.com/qeeqez/snowid-postgres/commit/183f1003aed302cc1376c70e1f2fdf608751d852))
+
 ## [2.1.1](https://github.com/qeeqez/snowid-postgres/compare/v2.1.0...v2.1.1) (2026-02-26)
 
 
