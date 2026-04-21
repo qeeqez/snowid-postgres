@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/qeeqez/snowid-postgres/compare/v2.3.0...v2.3.1) (2026-04-21)
+
+
+### Bug Fixes
+
+* bundle manual SQL migration scripts in Docker images and CI artifacts ([51f6a0a](https://github.com/qeeqez/snowid-postgres/commit/51f6a0a2a0fef5e64c44c31c15f2423762b5f140))
+
 ## [2.3.0](https://github.com/qeeqez/snowid-postgres/compare/v2.2.0...v2.3.0) (2026-04-21)
 
 
