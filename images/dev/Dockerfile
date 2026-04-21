@@ -31,6 +31,7 @@ RUN cargo pgrx init --pg${PG_MAJOR} $(which pg_config)
 
 WORKDIR /snowid
 COPY Cargo.toml Cargo.lock pg_snowid.control ./
+COPY sql ./sql
 
 # Pre-build dependencies
 RUN mkdir src && echo 'fn main() {}' > src/lib.rs && \
@@ -45,7 +46,8 @@ COPY src ./src
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/snowid/target \
-    cargo pgrx install --pg-config=$(which pg_config) --release
+    cargo pgrx install --pg-config=$(which pg_config) --release && \
+    cp sql/*.sql $(pg_config --sharedir)/extension/
 
 FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie
 

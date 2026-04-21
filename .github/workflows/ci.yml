@@ -62,7 +62,9 @@ jobs:
         run: cargo pgrx test pg${{ matrix.pg_major }}
 
       - name: 🔨 Build Extension
-        run: cargo pgrx package
+        run: |
+          cargo pgrx package
+          cp sql/*.sql target/release/pg_snowid-pg${{ matrix.pg_major }}/usr/share/postgresql/${{ matrix.pg_major }}/extension/
 
       - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v7
