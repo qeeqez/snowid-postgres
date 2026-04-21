@@ -23,8 +23,8 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN $HOME/.cargo/bin/rustup default stable
 
 # Cache mounts to massively speed up Cargo compilation
-RUN --mount=type=cache,target=/root/.cargo/registry,sharing=locked \
-    --mount=type=cache,target=/root/.cargo/git,sharing=locked \
+RUN --mount=type=cache,id=pg-cargo-registry,target=/root/.cargo/registry,sharing=locked \
+    --mount=type=cache,id=pg-cargo-git,target=/root/.cargo/git,sharing=locked \
     $HOME/.cargo/bin/cargo install cargo-pgrx --version=${PGRX} --locked
 
 RUN $HOME/.cargo/bin/cargo pgrx init --pg${PG_MAJOR} $(which pg_config)
@@ -35,9 +35,9 @@ COPY src ./src
 COPY sql ./sql
 
 # Install snowid (also using cache mounts here)
-RUN --mount=type=cache,target=/root/.cargo/registry,sharing=locked \
-    --mount=type=cache,target=/root/.cargo/git,sharing=locked \
-    --mount=type=cache,target=/app/target,sharing=locked \
+RUN --mount=type=cache,id=pg-cargo-registry,target=/root/.cargo/registry,sharing=locked \
+    --mount=type=cache,id=pg-cargo-git,target=/root/.cargo/git,sharing=locked \
+    --mount=type=cache,id=pg-cargo-target,target=/app/target,sharing=locked \
     $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config) --release
 
 FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie
