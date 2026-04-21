@@ -1,6 +1,6 @@
 [extension]
 name = "pg_snowid"
-version = "2.3.5" # x-release-please-version
+version = "2.3.6" # x-release-please-version
 repository = "https://github.com/qeeqez/snowid-postgres"
 license = "PostgreSQL"
 description = "Generate Snowflake-like IDs with speed and thread-safety in PostgreSQL"
