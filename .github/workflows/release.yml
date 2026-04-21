@@ -23,21 +23,21 @@ jobs:
 
       - name: Checkout PR branch
         if: ${{ steps.release.outputs.prs_created == 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ fromJSON(steps.release.outputs.prs)[0].headBranchName }}
 
       - name: Generate migration script
         if: ${{ steps.release.outputs.prs_created == 'true' }}
         run: |
-          NEW_VERSION="${{ fromJSON(steps.release.outputs.prs)[0].version }}"
+          NEW_VERSION=$(jq -r '."."' .release-please-manifest.json)
           LAST_MIGRATION=$(ls sql/pg_snowid--*.sql | sort -V | tail -n1)
           OLD_VERSION=$(echo $LAST_MIGRATION | grep -oP 'pg_snowid--[0-9.]*--?\K[0-9.]+(?=\.sql)')
           
           if [ ! -f "sql/pg_snowid--${OLD_VERSION}--${NEW_VERSION}.sql" ]; then
             echo "-- Upgrade script for pg_snowid from version $OLD_VERSION to $NEW_VERSION" > "sql/pg_snowid--${OLD_VERSION}--${NEW_VERSION}.sql"
             echo "-- No SQL schema changes in this version. Underlying library updated." >> "sql/pg_snowid--${OLD_VERSION}--${NEW_VERSION}.sql"
-            
+          
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add "sql/pg_snowid--${OLD_VERSION}--${NEW_VERSION}.sql"
