@@ -47,19 +47,6 @@ jobs:
             postgresql-server-dev-${{ matrix.pg_major }} \
             clang gcc make pkg-config
 
-      - name: 🏷️ Get PGRX Version
-        id: pgrx-version
-        run: |
-          PGRX_VER=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '"' -f 2)
-          echo "version=$PGRX_VER" >> $GITHUB_OUTPUT
-
-      - name: ⚡️ Cache cargo-pgrx binary
-        id: cache-pgrx
-        uses: actions/cache@v5
-        with:
-          path: ~/.cargo/bin/cargo-pgrx
-          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-pgrx-${{ steps.pgrx-version.outputs.version }}
-
       - name: 📦 Install cargo-pgrx
         if: steps.cache-pgrx.outputs.cache-hit != 'true'
         run: cargo install cargo-pgrx --version ${{ steps.pgrx-version.outputs.version }} --locked
