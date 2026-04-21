@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.3.0](https://github.com/qeeqez/snowid-postgres/compare/v2.2.0...v2.3.0) (2026-04-21)
+
+
+### Features
+
+* optimize docker build for multi-arch and native performance ([3a8f6a9](https://github.com/qeeqez/snowid-postgres/commit/3a8f6a9cb74533770e6decf83dc7355d4ed4cca9))
+
+
+### Bug Fixes
+
+* add postgresql server package for pgrx initialization ([b0a18f2](https://github.com/qeeqez/snowid-postgres/commit/b0a18f216d9c521772f2cd3871a38a5452e893a8))
+
+
+### Performance Improvements
+
+* add caching for apt packages and cargo-pgrx binary ([2455c18](https://github.com/qeeqez/snowid-postgres/commit/2455c1834e4bb0bb0d84410f5996098caa3113d9))
+
 ## [2.2.0](https://github.com/qeeqez/snowid-postgres/compare/v2.1.2...v2.2.0) (2026-04-21)
 
 
