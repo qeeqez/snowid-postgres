@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.6](https://github.com/qeeqez/snowid-postgres/compare/v2.3.5...v2.3.6) (2026-04-21)
+
+
+### Bug Fixes
+
+* strip false in the release profile ([0aac18f](https://github.com/qeeqez/snowid-postgres/commit/0aac18f79da12032b5f03a6d3c164506c192fa52))
+
 ## [2.3.5](https://github.com/qeeqez/snowid-postgres/compare/v2.3.4...v2.3.5) (2026-04-21)
 
 
