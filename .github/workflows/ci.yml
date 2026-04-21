@@ -130,5 +130,5 @@ jobs:
             PG_MINOR=${{ matrix.pg_version.minor }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ github.workflow }}-${{ matrix.pg_provider }}-${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
-          cache-to: type=gha,mode=max,scope=${{ github.workflow }}-${{ matrix.pg_provider }}-${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
