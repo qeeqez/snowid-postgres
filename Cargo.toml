@@ -42,4 +42,4 @@ panic = "unwind"
 panic = "unwind"
 opt-level = 3
 lto = false
-codegen-units = 1
+strip = false
