@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.8](https://github.com/qeeqez/snowid-postgres/compare/v2.3.7...v2.3.8) (2026-04-21)
+
+
+### Bug Fixes
+
+* better cache for postgres image ([6331bcd](https://github.com/qeeqez/snowid-postgres/commit/6331bcdfba993f1a446690e32762abfbb859db71))
+
 ## [2.3.7](https://github.com/qeeqez/snowid-postgres/compare/v2.3.6...v2.3.7) (2026-04-21)
 
 
