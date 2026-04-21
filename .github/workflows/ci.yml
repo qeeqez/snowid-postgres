@@ -12,25 +12,25 @@ on:
 
 jobs:
   compile:
-    name: Compile (${{ matrix.arch }})
+    name: ⚙️ Compile (${{ matrix.arch }})
     runs-on: ${{ matrix.arch == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
       matrix:
         pg_major: [ 18 ]
         arch: [ amd64, arm64 ]
     steps:
-      - name: Check out the repo
+      - name: 📥 Checkout
         uses: actions/checkout@v6
 
-      - name: Install Rust
+      - name: 🦀 Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Rust Cache
+      - name: ⚡️ Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.arch }}-${{ matrix.pg_major }}
 
-      - name: Install PostgreSQL headers
+      - name: 🐘 Install PostgreSQL Headers
         run: |
           sudo apt-get update
           sudo apt-get install -y curl ca-certificates gnupg
@@ -39,28 +39,28 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-${{ matrix.pg_major }} postgresql-server-dev-${{ matrix.pg_major }} clang gcc make pkg-config
 
-      - name: Install cargo-binstall
+      - name: 🛠️ Setup cargo-binstall
         uses: cargo-bins/cargo-binstall@main
 
-      - name: Install cargo-pgrx
+      - name: 📦 Install cargo-pgrx
         run: |
           PGRX_VER=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '"' -f 2)
           cargo binstall cargo-pgrx@$PGRX_VER -y --force
 
-      - name: Initialize pgrx
+      - name: 🚀 Initialize pgrx
         run: cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
 
-      - name: Build package
+      - name: 🔨 Build Extension
         run: cargo pgrx package
 
-      - name: Upload artifact
+      - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v7
         with:
           name: ext-package-${{ matrix.pg_major }}-${{ matrix.arch }}
           path: target/release/pg_snowid-pg${{ matrix.pg_major }}/
 
   build_and_push:
-    name: Build and Publish
+    name: 🐳 Build and Publish
     needs: compile
     runs-on: ubuntu-latest
     strategy:
@@ -72,22 +72,22 @@ jobs:
           - { major: 18, minor: 3, is_latest: true }
 
     steps:
-      - name: Check out the repo
+      - name: 📥 Checkout
         uses: actions/checkout@v6
 
-      - name: Download amd64 artifact
+      - name: 📥 Download AMD64 Artifact
         uses: actions/download-artifact@v8
         with:
           name: ext-package-${{ matrix.pg_version.major }}-amd64
           path: artifacts/amd64/
 
-      - name: Download arm64 artifact
+      - name: 📥 Download ARM64 Artifact
         uses: actions/download-artifact@v8
         with:
           name: ext-package-${{ matrix.pg_version.major }}-arm64
           path: artifacts/arm64/
 
-      - name: Docker metadata
+      - name: 🏷️ Docker Metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
@@ -96,23 +96,27 @@ jobs:
             type=raw,value=${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
             type=raw,value=${{ matrix.pg_version.major }},enable=${{ matrix.pg_version.is_latest }}
 
-      - name: Set up Docker Buildx
+      - name: 🐳 Setup Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Login to Docker Hub
+      - name: 🔑 Login to Docker Hub
         if: ${{ inputs.publish_images }}
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      - name: 🚀 Build and Push
         uses: docker/build-push-action@v7
         with:
           file: ./images/${{ matrix.pg_provider }}/Dockerfile
           context: .
           platforms: linux/amd64,linux/arm64
-          push: ${{ inputs.publish_images || false }}
+          push: ${{ inputs.publish_images == true }}
           build-args: |
             PG_MAJOR=${{ matrix.pg_version.major }}
-            PG_MINOR=${{
+            PG_MINOR=${{ matrix.pg_version.minor }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ github.workflow }}-${{ matrix.pg_provider }}-${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
+          cache-to: type=gha,mode=max,scope=${{ github.workflow }}-${{ matrix.pg_provider }}-${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
