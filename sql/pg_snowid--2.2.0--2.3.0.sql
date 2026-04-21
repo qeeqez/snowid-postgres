@@ -1,0 +1,2 @@
+-- Upgrade script for pg_snowid from version 2.2.0 to 2.3.0
+-- No SQL schema changes in this version. Underlying library updated.
