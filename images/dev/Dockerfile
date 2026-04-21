@@ -1,11 +1,11 @@
-ARG PG_MAJOR
-ARG PG_MINOR
-ARG PGRX
+ARG PG_MAJOR=18
+ARG PG_MINOR=1
+ARG PGRX=0.18.0
 
 FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie AS builder
 
-ARG PG_MAJOR
-ARG PGRX
+ARG PG_MAJOR=18
+ARG PGRX=0.18.0
 
 RUN apt-get update && apt-get install -y ca-certificates curl && \
 	install -d /usr/share/postgresql-common/pgdg && \
@@ -33,7 +33,6 @@ RUN $HOME/.cargo/bin/cargo pgrx init --pg${PG_MAJOR} $(which pg_config)
 WORKDIR /snowid
 COPY Cargo.toml Cargo.lock pg_snowid.control ./
 COPY images/dev/dummy.rs ./src/lib.rs
-COPY src/bin/pgrx_embed.rs ./src/bin/pgrx_embed.rs
 RUN $HOME/.cargo/bin/cargo build
 
 COPY src ./src
