@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.2.0](https://github.com/qeeqez/snowid-postgres/compare/v2.1.2...v2.2.0) (2026-04-21)
+
+
+### Features
+
+* upgrade to pgrx 0.18.0 and update dependencies ([f7b7cae](https://github.com/qeeqez/snowid-postgres/commit/f7b7cae924e2273c895b96588bcefe0188a06491))
+
+
+### Bug Fixes
+
+* cleanup dev dockerfile and format code ([03aaabc](https://github.com/qeeqez/snowid-postgres/commit/03aaabc9c3ea9fcf1e4502fc1bd783a1e91ea8cf))
+* resolve multi-arch build cache race and add missing ARGs ([29ca3b5](https://github.com/qeeqez/snowid-postgres/commit/29ca3b578d090743cd6b6d66aad34a7f54de2fc8))
+
+
+### Performance Improvements
+
+* use dummy source trick to fix docker caching ([e5c0728](https://github.com/qeeqez/snowid-postgres/commit/e5c0728f19e142ce7102f7a1b6e020fc649ffd28))
+
 ## [2.1.2](https://github.com/qeeqez/snowid-postgres/compare/v2.1.1...v2.1.2) (2026-03-31)
 
 
