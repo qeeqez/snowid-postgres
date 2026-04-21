@@ -35,7 +35,7 @@ jobs:
       - name: ⚡️ Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.arch }}-${{ matrix.pg_major }}-v2
+          key: ${{ matrix.arch }}-${{ matrix.pg_major }}-v3
 
       - name: 🐘 Setup PostgreSQL Repository
         run: |
@@ -63,6 +63,12 @@ jobs:
 
       - name: 🔨 Build Extension
         run: cargo pgrx package --profile release
+
+      - name: 🔍 Debug Artifact Contents
+        if: ${{ matrix.arch == 'arm64' }}
+        run: |
+          echo "Checking if the SQL file survived the download:"
+          ls -la artifacts/arm64/usr/share/postgresql/${{ matrix.pg_major }}/extension/
 
       - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v7
