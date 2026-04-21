@@ -11,8 +11,53 @@ on:
         default: false
 
 jobs:
+  compile:
+    name: Compile (${{ matrix.arch }})
+    runs-on: ${{ matrix.arch == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    strategy:
+      matrix:
+        pg_major: [ 18 ]
+        arch: [ amd64, arm64 ]
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.arch }}-${{ matrix.pg_major }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang gcc git libssl-dev make pkg-config
+          # Install PostgreSQL dev headers
+          curl -sSfL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+          echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-server-dev-${{ matrix.pg_major }}
+
+      - name: Install cargo-pgrx
+        run: |
+          PGRX_VER=$(yq '.dependencies.pgrx' Cargo.toml)
+          cargo install cargo-pgrx --version "$PGRX_VER" --locked
+          cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
+
+      - name: Build package
+        run: cargo pgrx package
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.pg_major }}-${{ matrix.arch }}
+          path: target/release/pg_snowid-pg${{ matrix.pg_major }}
+
   build_and_push:
     name: Build and Publish
+    needs: compile
     runs-on: ubuntu-latest
 
     strategy:
@@ -28,6 +73,18 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
+
+      - name: Download amd64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: package-${{ matrix.pg_version.major }}-amd64
+          path: artifacts/amd64/pg_snowid-pg${{ matrix.pg_version.major }}
+
+      - name: Download arm64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: package-${{ matrix.pg_version.major }}-arm64
+          path: artifacts/arm64/pg_snowid-pg${{ matrix.pg_version.major }}
 
       - name: Set version strings
         id: versions
@@ -65,7 +122,6 @@ jobs:
           build-args: |
             PG_MAJOR=${{ matrix.pg_version.major }}
             PG_MINOR=${{ matrix.pg_version.minor }}
-            PGRX=${{ steps.versions.outputs.PGRX_VER }}
           tags: ${{ steps.docker_tags.outputs.tags }}
           cache-from: type=gha,scope=${{ github.workflow }}-${{ matrix.pg_provider }}-${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
           cache-to: type=gha,mode=max,scope=${{ github.workflow }}-${{ matrix.pg_provider }}-${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}

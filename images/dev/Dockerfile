@@ -4,41 +4,48 @@ ARG PGRX=0.18.0
 
 FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie AS builder
 
-ARG PG_MAJOR=18
-ARG PGRX=0.18.0
+ARG PG_MAJOR
+ARG PGRX
 
-RUN apt-get update && apt-get install -y ca-certificates curl && \
-	install -d /usr/share/postgresql-common/pgdg && \
-	curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc && \
-	. /etc/os-release && \
-	sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list" && \
-	apt-get update
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl gnupg \
+    clang gcc git libssl-dev make pkg-config && \
+    install -d /usr/share/postgresql-common/pgdg && \
+    curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc && \
+    . /etc/os-release && \
+    sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list" && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends postgresql-server-dev-${PG_MAJOR}
 
-RUN apt-get install -y \
-	clang \
-	gcc \
-	git \
-	libssl-dev \
-	make \
-	pkg-config
-RUN apt-get install -y postgresql-server-dev-${PG_MAJOR}
-
-# Install Rust dependencies
+# Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-RUN $HOME/.cargo/bin/rustup default stable
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN rustup default stable
 
-RUN $HOME/.cargo/bin/cargo install cargo-pgrx --version=${PGRX} --locked
-RUN $HOME/.cargo/bin/cargo pgrx init --pg${PG_MAJOR} $(which pg_config)
+# Install pgrx with cache
+RUN --mount=type=cache,target=/root/.cargo/registry \
+    --mount=type=cache,target=/root/.cargo/git \
+    cargo install cargo-pgrx --version=${PGRX} --locked
+
+RUN cargo pgrx init --pg${PG_MAJOR} $(which pg_config)
 
 WORKDIR /snowid
 COPY Cargo.toml Cargo.lock pg_snowid.control ./
-COPY images/dev/dummy.rs ./src/lib.rs
-RUN $HOME/.cargo/bin/cargo build
+
+# Pre-build dependencies
+RUN mkdir src && echo 'fn main() {}' > src/lib.rs && \
+    --mount=type=cache,target=/root/.cargo/registry \
+    --mount=type=cache,target=/root/.cargo/git \
+    --mount=type=cache,target=/snowid/target \
+    cargo build --release
 
 COPY src ./src
 
-# install snowid
-RUN $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config)
+# Build extension
+RUN --mount=type=cache,target=/root/.cargo/registry \
+    --mount=type=cache,target=/root/.cargo/git \
+    --mount=type=cache,target=/snowid/target \
+    cargo pgrx install --pg-config=$(which pg_config) --release
 
 FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie
 
