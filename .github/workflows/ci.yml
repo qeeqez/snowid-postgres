@@ -93,11 +93,6 @@ jobs:
           name: ext-package-${{ matrix.pg_version.major }}-amd64
           path: artifacts/amd64/
 
-      - name: 🔍 Debug Artifact Contents
-        run: |
-          echo "Checking if the SQL file survived the download:"
-          ls -la artifacts/amd64/usr/share/postgresql/${{ matrix.pg_version.major }}/extension/
-
       - name: 📥 Download ARM64 Artifact
         uses: actions/download-artifact@v8
         with:
