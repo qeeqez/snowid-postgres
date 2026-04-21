@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.2](https://github.com/qeeqez/snowid-postgres/compare/v2.3.1...v2.3.2) (2026-04-21)
+
+
+### Bug Fixes
+
+* missing sql files in the final extension ([8d44e64](https://github.com/qeeqez/snowid-postgres/commit/8d44e64c6da3b1687f3f5f45e48a3c097ff8d873))
+
 ## [2.3.1](https://github.com/qeeqez/snowid-postgres/compare/v2.3.0...v2.3.1) (2026-04-21)
 
 
