@@ -96,7 +96,7 @@ jobs:
       - name: 🔍 Debug Artifact Contents
         run: |
           echo "Checking if the SQL file survived the download:"
-          ls -la artifacts/amd64/usr/share/postgresql/${{ matrix.pg_major }}/extension/
+          ls -la artifacts/amd64/usr/share/postgresql/${{ matrix.pg_version.major }}/extension/
 
       - name: 📥 Download ARM64 Artifact
         uses: actions/download-artifact@v8
