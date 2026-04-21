@@ -24,9 +24,7 @@ crate-type = ["cdylib"]
 [features]
 default = ["pg18"]
 pg18 = ["pgrx/pg18", "pgrx-tests/pg18"]
-pg17 = ["pgrx/pg17", "pgrx-tests/pg17"]
-pg16 = ["pgrx/pg16", "pgrx-tests/pg16"]
-pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
+
 pg_test = []
 
 [dependencies]
