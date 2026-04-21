@@ -33,19 +33,11 @@ WORKDIR /snowid
 COPY Cargo.toml Cargo.lock pg_snowid.control ./
 COPY sql ./sql
 
-# Pre-build dependencies
-RUN mkdir src && echo 'fn main() {}' > src/lib.rs && \
-    --mount=type=cache,target=/root/.cargo/registry \
-    --mount=type=cache,target=/root/.cargo/git \
-    --mount=type=cache,target=/snowid/target \
-    cargo build --release
-
 COPY src ./src
 
 # Build extension
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
-    --mount=type=cache,target=/snowid/target \
     cargo pgrx install --pg-config=$(which pg_config) --release && \
     cp sql/*.sql $(pg_config --sharedir)/extension/
 

@@ -53,7 +53,7 @@ jobs:
         run: |
           PGRX_VER=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '"' -f 2)
           cargo install cargo-pgrx --version $PGRX_VER --locked
-          cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
+          cargo pgrx init --pg${{ matrix.pg_major }} /usr/lib/postgresql/${{ matrix.pg_major }}/bin/pg_config
 
       - name: 🔎 Lint (Clippy)
         run: cargo clippy -- -D warnings
@@ -63,7 +63,8 @@ jobs:
 
       - name: 🔨 Build Extension
         run: |
-          cargo pgrx package
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(/usr/lib/postgresql/${{ matrix.pg_major }}/bin/pg_config --libdir)
+          cargo pgrx package --pg-config /usr/lib/postgresql/${{ matrix.pg_major }}/bin/pg_config
           cp sql/*.sql target/release/pg_snowid-pg${{ matrix.pg_major }}/usr/share/postgresql/${{ matrix.pg_major }}/extension/
 
       - name: 📤 Upload Artifact
