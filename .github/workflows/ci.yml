@@ -64,10 +64,15 @@ jobs:
       - name: 🔨 Build Extension
         run: cargo pgrx package --profile release
 
+      - name: 🧪 Test Packaged SQL Files
+        env:
+          PG_SNOWID_PACKAGE_DIR: target/release/pg_snowid-pg${{ matrix.pg_major }}
+        run: cargo test --test packaged_sql_files -- --ignored --nocapture
+
       - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ext-package-${{ matrix.pg_major }}-${{ matrix.arch }}
+          name: pg-snowid-package-${{ matrix.pg_major }}-${{ matrix.arch }}
           path: target/release/pg_snowid-pg${{ matrix.pg_major }}/
           retention-days: 1
 
@@ -90,13 +95,13 @@ jobs:
       - name: 📥 Download AMD64 Artifact
         uses: actions/download-artifact@v8
         with:
-          name: ext-package-${{ matrix.pg_version.major }}-amd64
+          name: pg-snowid-package-${{ matrix.pg_version.major }}-amd64
           path: artifacts/amd64/
 
       - name: 📥 Download ARM64 Artifact
         uses: actions/download-artifact@v8
         with:
-          name: ext-package-${{ matrix.pg_version.major }}-arm64
+          name: pg-snowid-package-${{ matrix.pg_version.major }}-arm64
           path: artifacts/arm64/
 
       - name: 🏷️ Docker Metadata
