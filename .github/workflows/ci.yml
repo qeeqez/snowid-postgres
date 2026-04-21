@@ -62,7 +62,7 @@ jobs:
         run: cargo pgrx test pg${{ matrix.pg_major }}
 
       - name: 🔨 Build Extension
-        run: cargo pgrx package --release
+        run: cargo pgrx package --profile release
 
       - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v7
