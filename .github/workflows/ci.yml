@@ -30,21 +30,41 @@ jobs:
         with:
           key: ${{ matrix.arch }}-${{ matrix.pg_major }}
 
-      - name: Install dependencies
+      - name: Cache APT packages
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: clang gcc git libssl-dev make pkg-config postgresql-server-dev-${{ matrix.pg_major }}
+          version: 1.0
+
+      - name: Install dependencies (fallback/additional)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang gcc git libssl-dev make pkg-config
-          # Install PostgreSQL dev headers
-          curl -sSfL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
-          echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-          sudo apt-get update
-          sudo apt-get install -y postgresql-server-dev-${{ matrix.pg_major }}
+          # Add PostgreSQL repo if not already handled by the cache action's installation
+          if ! command -v pg_config &> /dev/null; then
+            curl -sSfL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+            echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+            sudo apt-get update
+            sudo apt-get install -y postgresql-server-dev-${{ matrix.pg_major }}
+          fi
+
+      - name: Get pgrx version
+        id: pgrx-version
+        run: echo "version=$(yq '.dependencies.pgrx' Cargo.toml)" >> $GITHUB_OUTPUT
+
+      - name: Cache cargo-pgrx
+        id: cache-pgrx
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-pgrx
+          key: ${{ matrix.arch }}-pgrx-${{ steps.pgrx-version.outputs.version }}
 
       - name: Install cargo-pgrx
+        if: steps.cache-pgrx.outputs.cache-hit != 'true'
         run: |
           PGRX_VER=$(yq '.dependencies.pgrx' Cargo.toml)
           cargo install cargo-pgrx --version "$PGRX_VER" --locked
-          cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
+
+      - name: Initialize pgrx
+        run: cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
 
       - name: Build package
         run: cargo pgrx package
