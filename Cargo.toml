@@ -18,11 +18,8 @@ homepage = "https://github.com/qeeqez/snowid-postgres"
 repository = "https://github.com/qeeqez/snowid-postgres"
 
 [lib]
-crate-type = ["cdylib", "lib"]
+crate-type = ["cdylib"]
 
-[[bin]]
-name = "pgrx_embed_pg_snowid"
-path = "./src/bin/pgrx_embed.rs"
 
 [features]
 default = ["pg18"]
