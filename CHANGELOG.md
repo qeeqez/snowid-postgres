@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.3](https://github.com/qeeqez/snowid-postgres/compare/v2.3.2...v2.3.3) (2026-04-21)
+
+
+### Bug Fixes
+
+* do not allow rust compiler to strip sql migration scripts ([430f5f8](https://github.com/qeeqez/snowid-postgres/commit/430f5f877968ed57d198afd74a89a8d9f9ea739a))
+
 ## [2.3.2](https://github.com/qeeqez/snowid-postgres/compare/v2.3.1...v2.3.2) (2026-04-21)
 
 
