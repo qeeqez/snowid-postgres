@@ -56,19 +56,13 @@ jobs:
           cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
 
       - name: 🔎 Lint (Clippy)
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --profile release -- -D warnings
 
       - name: 🧪 Run Tests
-        run: cargo pgrx test pg${{ matrix.pg_major }}
+        run: cargo pgrx test pg${{ matrix.pg_major }} --profile release
 
       - name: 🔨 Build Extension
         run: cargo pgrx package --profile release
-
-      - name: 🔍 Debug Artifact Contents
-        if: ${{ matrix.arch == 'arm64' }}
-        run: |
-          echo "Checking if the SQL file survived the download:"
-          ls -la artifacts/arm64/usr/share/postgresql/${{ matrix.pg_major }}/extension/
 
       - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v7
