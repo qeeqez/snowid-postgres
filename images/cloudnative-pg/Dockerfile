@@ -31,13 +31,17 @@ RUN $HOME/.cargo/bin/cargo pgrx init --pg${PG_MAJOR} $(which pg_config)
 
 WORKDIR /app
 COPY Cargo.toml Cargo.lock pg_snowid.control ./
+# Pre-build dependencies to cache them in a Docker layer
+RUN mkdir src && echo '' > src/lib.rs && \
+    mkdir sql && \
+    $HOME/.cargo/bin/cargo build --release
+
+# Copy actual source code
 COPY src ./src
 COPY sql ./sql
 
-# Install snowid using cache mounts
-RUN --mount=type=cache,id=cloudnative-pg-cargo-registry,target=/root/.cargo/registry,sharing=locked \
-    --mount=type=cache,id=cloudnative-pg-cargo-git,target=/root/.cargo/git,sharing=locked \
-    --mount=type=cache,id=cloudnative-pg-cargo-target,target=/app/target,sharing=locked \
+# Build the actual extension (dependencies are already cached)
+RUN touch src/lib.rs && \
     $HOME/.cargo/bin/cargo pgrx install --pg-config=$(which pg_config) --release
 
 FROM ghcr.io/cloudnative-pg/postgresql:${PG_MAJOR}.${PG_MINOR}-standard-trixie
