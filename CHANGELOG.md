@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.7](https://github.com/qeeqez/snowid-postgres/compare/v2.3.6...v2.3.7) (2026-04-21)
+
+
+### Bug Fixes
+
+* add debug step ([bfbc9fc](https://github.com/qeeqez/snowid-postgres/commit/bfbc9fcc65572920ac5af89f0e1b8421ef290367))
+* real fix of stripping out the contents of sql files ([1bcac31](https://github.com/qeeqez/snowid-postgres/commit/1bcac31252908917582f9f2d62de35e65d3d49be))
+
 ## [2.3.6](https://github.com/qeeqez/snowid-postgres/compare/v2.3.5...v2.3.6) (2026-04-21)
 
 
