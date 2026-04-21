@@ -10,6 +10,13 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   compile:
     name: ⚙️ Compile (${{ matrix.arch }})
@@ -32,23 +39,36 @@ jobs:
 
       - name: 🐘 Install PostgreSQL Headers
         run: |
-          sudo apt-get update
-          sudo apt-get install -y curl ca-certificates gnupg
-          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
-          echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get install -y postgresql-common ca-certificates
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
           sudo apt-get update
           sudo apt-get install -y postgresql-${{ matrix.pg_major }} postgresql-server-dev-${{ matrix.pg_major }} clang gcc make pkg-config
 
-      - name: 🛠️ Setup cargo-binstall
-        uses: cargo-bins/cargo-binstall@main
-
-      - name: 📦 Install cargo-pgrx
+      - name: 🏷️ Get PGRX Version
+        id: pgrx-version
         run: |
           PGRX_VER=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '"' -f 2)
-          cargo binstall cargo-pgrx@$PGRX_VER -y --force
+          echo "version=$PGRX_VER" >> $GITHUB_OUTPUT
+
+      - name: ⚡️ Cache cargo-pgrx binary
+        id: cache-pgrx
+        uses: actions/cache@v5
+        with:
+          path: ~/.cargo/bin/cargo-pgrx
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-pgrx-${{ steps.pgrx-version.outputs.version }}
+
+      - name: 📦 Install cargo-pgrx
+        if: steps.cache-pgrx.outputs.cache-hit != 'true'
+        run: cargo install cargo-pgrx --version ${{ steps.pgrx-version.outputs.version }} --locked
 
       - name: 🚀 Initialize pgrx
         run: cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
+
+      - name: 🔎 Lint (Clippy)
+        run: cargo clippy -- -D warnings
+
+      - name: 🧪 Run Tests
+        run: cargo pgrx test pg${{ matrix.pg_major }}
 
       - name: 🔨 Build Extension
         run: cargo pgrx package
@@ -58,6 +78,7 @@ jobs:
         with:
           name: ext-package-${{ matrix.pg_major }}-${{ matrix.arch }}
           path: target/release/pg_snowid-pg${{ matrix.pg_major }}/
+          retention-days: 1
 
   build_and_push:
     name: 🐳 Build and Publish
