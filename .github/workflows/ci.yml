@@ -37,15 +37,17 @@ jobs:
         with:
           key: ${{ matrix.arch }}-${{ matrix.pg_major }}
 
-      - name: 🐘 Install PostgreSQL Headers
+      - name: 🐘 Setup PostgreSQL Repository
         run: |
-          sudo apt-get install -y postgresql-common ca-certificates
-          sudo YES=1 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
           sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            postgresql-${{ matrix.pg_major }} \
-            postgresql-server-dev-${{ matrix.pg_major }} \
-            clang gcc make pkg-config
+          sudo apt-get install -y postgresql-common ca-certificates --no-install-recommends
+          sudo YES=1 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+
+      - name: 📦 Cache & Install System Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+        with:
+          packages: postgresql-${{ matrix.pg_major }} postgresql-server-dev-${{ matrix.pg_major }} clang gcc make pkg-config
+          version: pg${{ matrix.pg_major }}-${{ matrix.arch }}-v1
 
       - name: 🚀 Initialize PGRX
         run: |
