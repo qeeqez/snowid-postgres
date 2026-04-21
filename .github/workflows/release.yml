@@ -30,7 +30,7 @@ jobs:
       - name: Generate migration script
         if: ${{ steps.release.outputs.prs_created == 'true' }}
         run: |
-          NEW_VERSION="${{ fromJSON(steps.release.outputs.prs)[0].version }}"
+          NEW_VERSION=$(grep -m 1 '^version = ' Cargo.toml | cut -d '"' -f 2)
           LAST_MIGRATION=$(ls sql/pg_snowid--*.sql | sort -V | tail -n1)
           OLD_VERSION=$(echo $LAST_MIGRATION | grep -oP 'pg_snowid--[0-9.]*--?\K[0-9.]+(?=\.sql)')
           
