@@ -6,8 +6,7 @@ FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie
 ARG PG_MAJOR
 ARG TARGETARCH
 
-# Copy pre-built extension files from the host (provided by GHA artifacts)
-COPY artifacts/${TARGETARCH}/pg_snowid-pg${PG_MAJOR} /
+COPY artifacts/${TARGETARCH}/ /
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates \

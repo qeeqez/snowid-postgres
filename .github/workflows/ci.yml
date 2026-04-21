@@ -30,38 +30,22 @@ jobs:
         with:
           key: ${{ matrix.arch }}-${{ matrix.pg_major }}
 
-      - name: Cache APT packages
-        uses: awalsh128/cache-apt-pkgs-action@v1
-        with:
-          packages: clang gcc git libssl-dev make pkg-config postgresql-${{ matrix.pg_major }} postgresql-server-dev-${{ matrix.pg_major }}
-          version: 1.1
-
-      - name: Install dependencies (fallback/additional)
+      - name: Install PostgreSQL headers
         run: |
-          # Add PostgreSQL repo if not already handled by the cache action's installation
-          if ! command -v pg_config &> /dev/null; then
-            curl -sSfL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
-            echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-            sudo apt-get update
-            sudo apt-get install -y postgresql-${{ matrix.pg_major }} postgresql-server-dev-${{ matrix.pg_major }}
-          fi
+          sudo apt-get update
+          sudo apt-get install -y curl ca-certificates gnupg
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+          echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-${{ matrix.pg_major }} postgresql-server-dev-${{ matrix.pg_major }} clang gcc make pkg-config
 
-      - name: Get pgrx version
-        id: pgrx-version
-        run: echo "version=$(yq '.dependencies.pgrx' Cargo.toml)" >> $GITHUB_OUTPUT
-
-      - name: Cache cargo-pgrx
-        id: cache-pgrx
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/cargo-pgrx
-          key: ${{ matrix.arch }}-pgrx-${{ steps.pgrx-version.outputs.version }}
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
 
       - name: Install cargo-pgrx
-        if: steps.cache-pgrx.outputs.cache-hit != 'true'
         run: |
-          PGRX_VER=$(yq '.dependencies.pgrx' Cargo.toml)
-          cargo install cargo-pgrx --version "$PGRX_VER" --locked
+          PGRX_VER=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '"' -f 2)
+          cargo binstall cargo-pgrx@$PGRX_VER -y --force
 
       - name: Initialize pgrx
         run: cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
@@ -70,16 +54,15 @@ jobs:
         run: cargo pgrx package
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: package-${{ matrix.pg_major }}-${{ matrix.arch }}
-          path: target/release/pg_snowid-pg${{ matrix.pg_major }}
+          name: ext-package-${{ matrix.pg_major }}-${{ matrix.arch }}
+          path: target/release/pg_snowid-pg${{ matrix.pg_major }}/
 
   build_and_push:
     name: Build and Publish
     needs: compile
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         pg_provider: [ pg, cloudnative-pg ]
@@ -88,30 +71,30 @@ jobs:
           - { major: 18, minor: 2, is_latest: false }
           - { major: 18, minor: 3, is_latest: true }
 
-    outputs:
-      short_sha: ${{ steps.versions.outputs.SHORT_SHA }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
 
       - name: Download amd64 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: package-${{ matrix.pg_version.major }}-amd64
-          path: artifacts/amd64/pg_snowid-pg${{ matrix.pg_version.major }}
+          name: ext-package-${{ matrix.pg_version.major }}-amd64
+          path: artifacts/amd64/
 
       - name: Download arm64 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: package-${{ matrix.pg_version.major }}-arm64
-          path: artifacts/arm64/pg_snowid-pg${{ matrix.pg_version.major }}
+          name: ext-package-${{ matrix.pg_version.major }}-arm64
+          path: artifacts/arm64/
 
-      - name: Set version strings
-        id: versions
-        run: |
-          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "TAG_VER=$(yq '.extension.version' Trunk.toml)" >> $GITHUB_OUTPUT
-          echo "PGRX_VER=$(yq '.dependencies.pgrx' Cargo.toml)" >> $GITHUB_OUTPUT
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: rixl/snowid-${{ matrix.pg_provider }}
+          tags: |
+            type=raw,value=${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
+            type=raw,value=${{ matrix.pg_version.major }},enable=${{ matrix.pg_version.is_latest }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -123,16 +106,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Generate Docker tags
-        id: docker_tags
-        run: |
-          TAGS="rixl/snowid-${{ matrix.pg_provider }}:${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}"
-          if [ "${{ matrix.pg_version.is_latest }}" == "true" ]; then
-            TAGS="$TAGS,rixl/snowid-${{ matrix.pg_provider }}:${{ matrix.pg_version.major }}"
-          fi
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
-
-      - name: Build and push -- Releases
+      - name: Build and push
         uses: docker/build-push-action@v7
         with:
           file: ./images/${{ matrix.pg_provider }}/Dockerfile
@@ -141,7 +115,4 @@ jobs:
           push: ${{ inputs.publish_images || false }}
           build-args: |
             PG_MAJOR=${{ matrix.pg_version.major }}
-            PG_MINOR=${{ matrix.pg_version.minor }}
-          tags: ${{ steps.docker_tags.outputs.tags }}
-          cache-from: type=gha,scope=${{ github.workflow }}-${{ matrix.pg_provider }}-${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
-          cache-to: type=gha,mode=max,scope=${{ github.workflow }}-${{ matrix.pg_provider }}-${{ matrix.pg_version.major }}.${{ matrix.pg_version.minor }}
+            PG_MINOR=${{
