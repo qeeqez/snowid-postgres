@@ -1442,9 +1442,9 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "snowid"
-version = "2.0.3"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a4a7c8ca9aab5eb7665429806d7f5f3e2ce5f5cfb7ea17b33f4170e5a7f540d"
+checksum = "e83e986b197ecd687acbdc58a0416c11b9d3b83aa385969236b3c6994448a4a8"
 dependencies = [
  "base62",
 ]
