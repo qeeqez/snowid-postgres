@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/rixlhq/snowid-postgres/compare/v2.3.8...v2.4.0) (2026-05-21)
+
+
+### Features
+
+* integrate strict style linting and upgrade snowid to 2.1.0 ([284d5f5](https://github.com/rixlhq/snowid-postgres/commit/284d5f5339362adaf10c62ef964875f01316fe81))
+
 ## [2.3.8](https://github.com/qeeqez/snowid-postgres/compare/v2.3.7...v2.3.8) (2026-04-21)
 
 
