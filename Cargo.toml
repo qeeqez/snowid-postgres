@@ -1,6 +1,6 @@
 [package]
 name = "pg_snowid"
-version = "2.3.8"
+version = "2.4.0"
 edition = "2024"
 resolver = "3"
 rust-version = "1.95"
