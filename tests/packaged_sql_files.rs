@@ -7,9 +7,7 @@ const EXTENSION_NAME: &str = "pg_snowid";
 #[test]
 #[ignore = "requires cargo pgrx package to run first"]
 fn packaged_build_contains_versioned_sql_files() {
-    let package_dir = env::var_os("PG_SNOWID_PACKAGE_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("target/release/pg_snowid-pg18"));
+    let package_dir = env::var_os("PG_SNOWID_PACKAGE_DIR").map_or_else(|| PathBuf::from("target/release/pg_snowid-pg18"), PathBuf::from);
 
     assert!(package_dir.is_dir(), "package directory does not exist: {}", package_dir.display());
 
@@ -72,7 +70,10 @@ fn sql_file_names(dir: &Path) -> Vec<String> {
             let path = entry.ok()?.path();
             let file_name = path.file_name()?.to_str()?;
 
-            if path.is_file() && file_name.starts_with(EXTENSION_NAME) && file_name.ends_with(".sql") {
+            if path.is_file()
+                && file_name.starts_with(EXTENSION_NAME)
+                && Path::new(file_name).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("sql"))
+            {
                 Some(file_name.to_owned())
             } else {
                 None
