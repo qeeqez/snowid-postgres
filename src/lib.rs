@@ -27,8 +27,7 @@ impl Default for SharedSnowID {
 
 // SAFETY: C-string literals are null-terminated and valid for static initialization
 static NODE_ID: PgAtomic<AtomicI16> = unsafe { PgAtomic::new(c"NODE_ID") };
-static GENERATORS: PgLwLock<AssertPGRXSharedMemory<FnvIndexMap<i32, SharedSnowID, MAX_TABLES>>> =
-    unsafe { PgLwLock::new(c"GENERATORS") };
+static GENERATORS: PgLwLock<AssertPGRXSharedMemory<FnvIndexMap<i32, SharedSnowID, MAX_TABLES>>> = unsafe { PgLwLock::new(c"GENERATORS") };
 
 #[pg_guard]
 pub extern "C-unwind" fn _PG_init() {
@@ -97,20 +96,14 @@ fn snowid_generate_base62_int(table_id: i32) -> String {
 }
 
 /// Helper function to create a generator for a table
-fn create_generator_for_table(
-    generators: &mut FnvIndexMap<i32, SharedSnowID, MAX_TABLES>,
-    table_id: i32,
-) {
+fn create_generator_for_table(generators: &mut FnvIndexMap<i32, SharedSnowID, MAX_TABLES>, table_id: i32) {
     let node_id = NODE_ID.get().load(Ordering::Relaxed);
     let Ok(snowid) = SnowID::new(node_id as u16) else {
         error!("Failed to create SnowID generator for node {}", node_id);
     };
     let shared_snowid = SharedSnowID(snowid);
     if generators.insert(table_id, shared_snowid).is_err() {
-        error!(
-            "Failed to insert generator for table ID {}, map is full",
-            table_id
-        );
+        error!("Failed to insert generator for table ID {}, map is full", table_id);
     }
 }
 
