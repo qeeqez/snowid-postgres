@@ -16,6 +16,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   fmt:
@@ -33,8 +34,19 @@ jobs:
       - name: 🎨 Run cargo fmt
         run: cargo fmt --all -- --check
 
+      - name: 🛑 Cancel Workflow on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log('Canceling workflow due to format failure...');
+            await github.rest.actions.cancelWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+
   compile:
-    needs: fmt
     name: ⚙️ Compile (${{ matrix.arch }})
     runs-on: ${{ matrix.arch == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
@@ -92,9 +104,21 @@ jobs:
           path: target/release/pg_snowid-pg${{ matrix.pg_major }}/
           retention-days: 1
 
+      - name: 🛑 Cancel Workflow on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log('Canceling workflow due to compilation failure...');
+            await github.rest.actions.cancelWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+
   build_and_push:
     name: 🐳 Build and Publish
-    needs: compile
+    needs: [fmt, compile]
     runs-on: ubuntu-latest
     strategy:
       matrix:
