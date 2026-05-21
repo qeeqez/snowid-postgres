@@ -4,10 +4,11 @@ use heapless::index_map::FnvIndexMap;
 use pgrx::atomics::PgAtomic;
 use pgrx::lwlock::PgLwLock;
 use pgrx::pg_shmem_init;
-use pgrx::prelude::*;
+use pgrx::prelude::{error, pg_extern, pg_guard, pg_module_magic, pg_sys};
 use pgrx::shmem::AssertPGRXSharedMemory;
 use pgrx::shmem::PGRXSharedMemory;
 use snowid::SnowID;
+use std::fmt::Write as _;
 use std::sync::atomic::{AtomicI16, Ordering};
 
 pg_module_magic!();
@@ -33,13 +34,13 @@ static GENERATORS: PgLwLock<AssertPGRXSharedMemory<FnvIndexMap<i32, SharedSnowID
 pub extern "C-unwind" fn _PG_init() {
     pg_shmem_init!(NODE_ID);
     // heapless containers require explicit initialization via AssertPGRXSharedMemory wrapper
-    pg_shmem_init!(GENERATORS = unsafe { AssertPGRXSharedMemory::new(Default::default()) });
+    pg_shmem_init!(GENERATORS = unsafe { AssertPGRXSharedMemory::new(FnvIndexMap::default()) });
 }
 
-/// Sets node ID (0-1023) for this PostgreSQL instance
+/// Sets node ID (0-1023) for this `PostgreSQL` instance
 ///
 /// @param node - Node ID between 0 and 1023
-/// @example SELECT snowid_set_node(5);
+/// @example SELECT `snowid_set_node`(5);
 #[pg_extern]
 fn snowid_set_node(node: i16) {
     if !(0..=1023).contains(&node) {
@@ -51,7 +52,7 @@ fn snowid_set_node(node: i16) {
 /// Gets current node ID
 ///
 /// @returns Node ID (0-1023)
-/// @example SELECT snowid_get_node();
+/// @example SELECT `snowid_get_node`();
 #[pg_extern]
 fn snowid_get_node() -> i16 {
     NODE_ID.get().load(Ordering::Relaxed)
@@ -59,14 +60,14 @@ fn snowid_get_node() -> i16 {
 
 #[pg_extern]
 fn snowid_generate(table_id: pg_sys::Oid) -> i64 {
-    snowid_generate_int(table_id.to_u32() as i32)
+    snowid_generate_int(table_id.to_u32().try_into().unwrap())
 }
 
-/// Generates unique Snowflake ID for given table
+/// Generates unique `SnowID` for given table
 ///
-/// @param table_id - Unique positive integer ID for the table
+/// @param `table_id` - Unique positive integer ID for the table
 /// @returns 64-bit unique time-sorted identifier
-/// @example CREATE TABLE users (id bigint PRIMARY KEY DEFAULT snowid_generate(1));
+/// @example CREATE TABLE users (id bigint PRIMARY KEY DEFAULT `snowid_generate`(1));
 #[pg_extern]
 fn snowid_generate_int(table_id: i32) -> i64 {
     if table_id <= 0 {
@@ -78,27 +79,27 @@ fn snowid_generate_int(table_id: i32) -> i64 {
 
 #[pg_extern]
 fn snowid_generate_base62(table_id: pg_sys::Oid) -> String {
-    snowid_generate_base62_int(table_id.to_u32() as i32)
+    snowid_generate_base62_int(table_id.to_u32().try_into().unwrap())
 }
 
-/// Generates unique base62-encoded Snowflake ID for given table
+/// Generates unique base62-encoded `SnowID` for given table
 ///
-/// @param table_id - Unique positive integer ID for the table
+/// @param `table_id` - Unique positive integer ID for the table
 /// @returns base62-encoded unique time-sorted identifier (VARCHAR(11))
-/// @example CREATE TABLE users (id VARCHAR(11) PRIMARY KEY DEFAULT snowid_generate_base62(1));
+/// @example CREATE TABLE users (id VARCHAR(11) PRIMARY KEY DEFAULT `snowid_generate_base62`(1));
 #[pg_extern]
 fn snowid_generate_base62_int(table_id: i32) -> String {
     if table_id <= 0 {
         error!("Table ID must be a positive number");
     }
 
-    with_table_generator(table_id, |sid| sid.generate_base62())
+    with_table_generator(table_id, SnowID::generate_base62)
 }
 
 /// Helper function to create a generator for a table
 fn create_generator_for_table(generators: &mut FnvIndexMap<i32, SharedSnowID, MAX_TABLES>, table_id: i32) {
     let node_id = NODE_ID.get().load(Ordering::Relaxed);
-    let Ok(snowid) = SnowID::new(node_id as u16) else {
+    let Ok(snowid) = SnowID::new(u16::try_from(node_id).unwrap()) else {
         error!("Failed to create SnowID generator for node {}", node_id);
     };
     let shared_snowid = SharedSnowID(snowid);
@@ -125,26 +126,26 @@ fn with_table_generator<R>(table_id: i32, f: impl Fn(&SnowID) -> R) -> R {
     f(&generators[&table_id].0)
 }
 
-/// Gets timestamp from Snowflake ID
+/// Gets timestamp from `SnowID`
 ///
 /// @param id - Snowflake ID
 /// @returns Unix timestamp in milliseconds
-/// @example SELECT snowid_get_timestamp(151819733950271234);
+/// @example SELECT `snowid_get_timestamp`(151819733950271234);
 #[pg_extern]
 fn snowid_get_timestamp(id: i64) -> i64 {
     if id < 0 {
         error!("ID must be non-negative");
     }
-    let id_u64: u64 = id as u64;
+    let id_u64: u64 = u64::try_from(id).unwrap();
 
     with_any_generator(|sid| sid.extract.timestamp(id_u64).try_into().unwrap())
 }
 
-/// Gets timestamp from base62-encoded Snowflake ID
+/// Gets timestamp from base62-encoded `SnowID`
 ///
-/// @param encoded_id - Base62-encoded Snowflake ID
+/// @param `encoded_id` - Base62-encoded `SnowID`
 /// @returns Unix timestamp in milliseconds
-/// @example SELECT snowid_get_timestamp_base62('2qPfVQh7Jw9');
+/// @example SELECT `snowid_get_timestamp_base62`('2qPfVQh7Jw9');
 #[pg_extern]
 fn snowid_get_timestamp_base62(encoded_id: &str) -> i64 {
     with_any_generator(|sid| match sid.decode_base62(encoded_id) {
@@ -166,7 +167,7 @@ fn with_any_generator<R>(f: impl Fn(&SnowID) -> R) -> R {
     let mut generators = GENERATORS.exclusive();
     if generators.is_empty() {
         let node_id = NODE_ID.get().load(Ordering::Relaxed);
-        let Ok(snowid) = SnowID::new(node_id as u16) else {
+        let Ok(snowid) = SnowID::new(u16::try_from(node_id).unwrap()) else {
             error!("Failed to create default generator for node {}", node_id);
         };
         let shared_snowid = SharedSnowID(snowid);
@@ -179,27 +180,28 @@ fn with_any_generator<R>(f: impl Fn(&SnowID) -> R) -> R {
     f(&generator.0)
 }
 
-/// Shows SnowID statistics (generators, table IDs, node ID)
+/// Shows `SnowID` statistics (generators, `table_id`s, node ID)
 ///
-/// @returns Statistics about SnowID usage
-/// @example SELECT snowid_stats();
+/// @returns Statistics about `SnowID` usage
+/// @example SELECT `snowid_stats`();
 #[pg_extern]
 fn snowid_stats() -> String {
     let generators = GENERATORS.share();
     let mut stats = String::from("SnowID Statistics:\n");
-    stats.push_str(&format!("Total Generators: {}\n", generators.len()));
-    stats.push_str("Generators:\n");
+    let _ = writeln!(stats, "Total Generators: {}", generators.len());
+    let _ = writeln!(stats, "Generators:");
 
     for (table_id, _) in generators.iter() {
-        stats.push_str(&format!("- Table ID: {}\n", table_id));
+        let _ = writeln!(stats, "- Table ID: {table_id}");
     }
 
-    stats.push_str(&format!(
+    let _ = write!(
+        stats,
         "Current Node ID: {}\n\
          Max Tables Supported: {}",
         snowid_get_node(),
         MAX_TABLES
-    ));
+    );
     stats
 }
 
@@ -211,6 +213,7 @@ pub mod pg_test {
         // perform one-off initialization when the pg_test framework starts
     }
 
+    #[must_use]
     pub fn postgresql_conf_options() -> Vec<&'static str> {
         // return any postgresql.conf settings that are required for your tests
         vec![]
