@@ -1,6 +1,6 @@
 [package]
 name = "pg_snowid"
-version = "2.4.0"
+version = "3.0.0"
 edition = "2024"
 resolver = "3"
 rust-version = "1.95"
@@ -29,7 +29,7 @@ pg_test = []
 
 [dependencies]
 pgrx = "0.18.0"
-snowid = "2.1.0"
+snowid = "3.0.0"
 heapless = "0.9.3"
 
 [dev-dependencies]

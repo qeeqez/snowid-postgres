@@ -1,0 +1,1 @@
+-- Upgrade script for pg_snowid from version 2.4.0 to 3.0.0
