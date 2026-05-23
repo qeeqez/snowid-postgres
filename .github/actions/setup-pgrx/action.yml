@@ -8,6 +8,9 @@ inputs:
   cache-key:
     description: Extra cache key segment for Rust dependency caching.
     required: true
+  pgrx-version:
+    description: cargo-pgrx version to install.
+    required: true
 
 runs:
   using: composite
@@ -19,17 +22,6 @@ runs:
       uses: Swatinem/rust-cache@v2
       with:
         key: ${{ inputs.cache-key }}
-
-    - name: Resolve PGRX Version
-      id: pgrx_version
-      shell: bash
-      run: |
-        PGRX_VER="$(sed -n 's/^pgrx[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$GITHUB_WORKSPACE/Cargo.toml" | head -n1)"
-        if [ -z "$PGRX_VER" ]; then
-          echo "Could not resolve pgrx dependency version from $GITHUB_WORKSPACE/Cargo.toml" >&2
-          exit 1
-        fi
-        echo "value=$PGRX_VER" >> "$GITHUB_OUTPUT"
 
     - name: Setup PostgreSQL Repository
       shell: bash
@@ -48,12 +40,12 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.cargo/bin/cargo-pgrx
-        key: cargo-pgrx-${{ runner.os }}-${{ runner.arch }}-${{ steps.pgrx_version.outputs.value }}
+        key: cargo-pgrx-${{ runner.os }}-${{ runner.arch }}-${{ inputs.pgrx-version }}
 
     - name: Install cargo-pgrx
       shell: bash
       run: |
-        PGRX_VER="${{ steps.pgrx_version.outputs.value }}"
+        PGRX_VER="${{ inputs.pgrx-version }}"
         INSTALLED_PGRX_VER="$(cargo-pgrx --version 2>/dev/null | awk '{print $2}' || true)"
         if [ "$INSTALLED_PGRX_VER" != "$PGRX_VER" ]; then
           cargo install cargo-pgrx --version "$PGRX_VER" --locked
