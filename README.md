@@ -85,6 +85,8 @@ SELECT snowid_set_node(5);
 SELECT snowid_get_node();
 ```
 
+If you do not call `snowid_set_node`, the extension uses the fixed default node ID `1`. This value is not auto-generated from the host or PostgreSQL instance. In multi-node deployments, set a unique node ID on every instance before generating IDs; otherwise different instances using the same node ID can produce overlapping ID ranges.
+
 ### Create Table with SnowID
 
 ```sql
@@ -131,7 +133,7 @@ SELECT snowid_stats();
 
 | Function | Returns | Description |
 | --- | --- | --- |
-| `snowid_set_node(node smallint)` | `void` | Sets the node ID for this PostgreSQL instance. |
+| `snowid_set_node(node smallint)` | `void` | Sets the node ID for this PostgreSQL instance before generators are created. |
 | `snowid_get_node()` | `smallint` | Returns the current node ID. |
 | `snowid_generate(table_id oid)` | `bigint` | Generates one logical timestamp SnowID. |
 | `snowid_generate_base62(table_id oid)` | `text` | Generates one logical timestamp SnowID encoded as Base62. |

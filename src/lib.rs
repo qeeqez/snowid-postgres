@@ -15,17 +15,12 @@ pg_module_magic!();
 
 const MAX_TABLES: usize = 1024;
 const MAX_BATCH_SIZE: i32 = 100_000;
+const DEFAULT_NODE_ID: i16 = 1;
 
 #[derive(Debug)]
 struct SharedSnowID(SnowID);
 
 unsafe impl PGRXSharedMemory for SharedSnowID {}
-
-impl Default for SharedSnowID {
-    fn default() -> Self {
-        Self(SnowID::new(1).unwrap())
-    }
-}
 
 // SAFETY: C-string literals are null-terminated and valid for static initialization
 static NODE_ID: PgAtomic<AtomicI16> = unsafe { PgAtomic::new(c"NODE_ID") };
@@ -33,12 +28,15 @@ static GENERATORS: PgLwLock<AssertPGRXSharedMemory<FnvIndexMap<i32, SharedSnowID
 
 #[pg_guard]
 pub extern "C-unwind" fn _PG_init() {
-    pg_shmem_init!(NODE_ID);
+    pg_shmem_init!(NODE_ID = AtomicI16::new(DEFAULT_NODE_ID));
     // heapless containers require explicit initialization via AssertPGRXSharedMemory wrapper
     pg_shmem_init!(GENERATORS = unsafe { AssertPGRXSharedMemory::new(FnvIndexMap::default()) });
 }
 
 /// Sets node ID (0-1023) for this `PostgreSQL` instance
+///
+/// The node ID defaults to 1 and is not auto-derived from the host. Set a
+/// unique node before generating IDs in multi-node deployments.
 ///
 /// @param node - Node ID between 0 and 1023
 /// @example SELECT `snowid_set_node`(5);
@@ -46,6 +44,14 @@ pub extern "C-unwind" fn _PG_init() {
 fn snowid_set_node(node: i16) {
     if !(0..=1023).contains(&node) {
         error!("Node ID must be between 0 and 1023");
+    }
+    let current_node = NODE_ID.get().load(Ordering::Relaxed);
+    if current_node == node {
+        return;
+    }
+    let generators = GENERATORS.exclusive();
+    if !generators.is_empty() {
+        error!("Node ID must be set before generating IDs; restart PostgreSQL to change it after generators have been created");
     }
     NODE_ID.get().store(node, Ordering::Relaxed);
 }
@@ -173,6 +179,10 @@ fn validate_batch_count(count: i32) -> usize {
     usize::try_from(count).unwrap()
 }
 
+fn default_snowid() -> SnowID {
+    SnowID::new(u16::try_from(DEFAULT_NODE_ID).unwrap()).unwrap()
+}
+
 /// Helper function to create a generator for a table
 fn create_generator_for_table(generators: &mut FnvIndexMap<i32, SharedSnowID, MAX_TABLES>, table_id: i32) {
     let node_id = NODE_ID.get().load(Ordering::Relaxed);
@@ -215,7 +225,7 @@ fn snowid_get_timestamp(id: i64) -> i64 {
     }
     let id_u64: u64 = u64::try_from(id).unwrap();
 
-    with_any_generator(|sid| sid.extract.timestamp(id_u64).try_into().unwrap())
+    default_snowid().extract.timestamp(id_u64).try_into().unwrap()
 }
 
 /// Gets timestamp from base62-encoded `SnowID`
@@ -225,36 +235,10 @@ fn snowid_get_timestamp(id: i64) -> i64 {
 /// @example SELECT `snowid_get_timestamp_base62`('2qPfVQh7Jw9');
 #[pg_extern]
 fn snowid_get_timestamp_base62(encoded_id: &str) -> i64 {
-    with_any_generator(|sid| match sid.decode_base62(encoded_id) {
-        Ok(id) => sid.extract.timestamp(id).try_into().unwrap(),
+    match base62::decode(encoded_id) {
+        Ok(id) => default_snowid().extract.timestamp(id).try_into().unwrap(),
         Err(e) => error!("Failed to decode base62 ID: {}", e),
-    })
-}
-
-/// Ensures there is at least one generator and runs the provided function with it.
-fn with_any_generator<R>(f: impl Fn(&SnowID) -> R) -> R {
-    // Fast path under shared lock
-    let generators_shared = GENERATORS.share();
-    if let Some((_, generator)) = generators_shared.iter().next() {
-        return f(&generator.0);
     }
-    drop(generators_shared);
-
-    // Slow path: create a default generator under exclusive lock if needed
-    let mut generators = GENERATORS.exclusive();
-    if generators.is_empty() {
-        let node_id = NODE_ID.get().load(Ordering::Relaxed);
-        let Ok(snowid) = SnowID::new(u16::try_from(node_id).unwrap()) else {
-            error!("Failed to create default generator for node {}", node_id);
-        };
-        let shared_snowid = SharedSnowID(snowid);
-        if generators.insert(0, shared_snowid).is_err() {
-            error!("Failed to insert default generator");
-        }
-    }
-
-    let (_, generator) = generators.iter().next().unwrap();
-    f(&generator.0)
 }
 
 /// Shows `SnowID` statistics (generators, `table_id`s, node ID)
