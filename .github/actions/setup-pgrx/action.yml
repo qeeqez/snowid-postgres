@@ -1,0 +1,58 @@
+name: Setup PGRX
+description: Install Rust, PostgreSQL, cargo-pgrx, and initialize pgrx for one PostgreSQL version.
+
+inputs:
+  pg-major:
+    description: PostgreSQL major version to initialize with pgrx.
+    required: true
+  cache-key:
+    description: Extra cache key segment for Rust dependency caching.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ inputs.cache-key }}
+
+    - name: Resolve PGRX Version
+      id: pgrx_version
+      shell: bash
+      run: echo "value=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '\"' -f 2)" >> "$GITHUB_OUTPUT"
+
+    - name: Setup PostgreSQL Repository
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-common ca-certificates --no-install-recommends
+        sudo YES=1 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+
+    - name: Cache & Install System Packages
+      uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+      with:
+        packages: postgresql-${{ inputs.pg-major }} postgresql-server-dev-${{ inputs.pg-major }} clang gcc make pkg-config
+        version: pg${{ inputs.pg-major }}-${{ runner.arch }}-v1
+
+    - name: Cache cargo-pgrx Binary
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/bin/cargo-pgrx
+        key: cargo-pgrx-${{ runner.os }}-${{ runner.arch }}-${{ steps.pgrx_version.outputs.value }}
+
+    - name: Install cargo-pgrx
+      shell: bash
+      run: |
+        PGRX_VER="${{ steps.pgrx_version.outputs.value }}"
+        INSTALLED_PGRX_VER="$(cargo-pgrx --version 2>/dev/null | awk '{print $2}' || true)"
+        if [ "$INSTALLED_PGRX_VER" != "$PGRX_VER" ]; then
+          cargo install cargo-pgrx --version "$PGRX_VER" --locked
+        fi
+
+    - name: Initialize PGRX
+      shell: bash
+      run: cargo pgrx init --pg${{ inputs.pg-major }} "$(which pg_config)"
