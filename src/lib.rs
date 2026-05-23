@@ -7,13 +7,14 @@ use pgrx::pg_shmem_init;
 use pgrx::prelude::{error, pg_extern, pg_guard, pg_module_magic, pg_sys};
 use pgrx::shmem::AssertPGRXSharedMemory;
 use pgrx::shmem::PGRXSharedMemory;
-use snowid::SnowID;
+use snowid::{SnowID, base62};
 use std::fmt::Write as _;
 use std::sync::atomic::{AtomicI16, Ordering};
 
 pg_module_magic!();
 
 const MAX_TABLES: usize = 1024;
+const MAX_BATCH_SIZE: i32 = 100_000;
 
 #[derive(Debug)]
 struct SharedSnowID(SnowID);
@@ -82,6 +83,84 @@ fn snowid_generate_int(table_id: i32) -> i64 {
 }
 
 #[pg_extern]
+fn snowid_try_generate(table_id: pg_sys::Oid) -> Option<i64> {
+    snowid_try_generate_int(table_id.to_u32().try_into().unwrap())
+}
+
+/// Tries to generate a unique `SnowID` for given table without logical timestamp advancement
+///
+/// Returns `NULL` instead of advancing the logical timestamp when the current
+/// wall-clock millisecond's sequence range is exhausted or the generator's
+/// logical timestamp is already ahead of wall-clock time.
+///
+/// @param `table_id` - Unique positive integer ID for the table
+/// @returns 64-bit unique time-sorted identifier, or NULL when unavailable immediately
+/// @example SELECT `snowid_try_generate`(1);
+#[pg_extern]
+fn snowid_try_generate_int(table_id: i32) -> Option<i64> {
+    if table_id <= 0 {
+        error!("Table ID must be a positive number");
+    }
+
+    with_table_generator(table_id, |sid| sid.try_generate().ok().map(|id| id.try_into().unwrap()))
+}
+
+#[pg_extern]
+fn snowid_generate_batch(table_id: pg_sys::Oid, count: i32) -> Vec<i64> {
+    snowid_generate_batch_int(table_id.to_u32().try_into().unwrap(), count)
+}
+
+/// Generates a batch of unique `SnowID`s for given table
+///
+/// Uses SnowID's logical batch reservation. It always returns `count` IDs and
+/// may advance timestamp components instead of waiting under sustained load.
+///
+/// @param `table_id` - Unique positive integer ID for the table
+/// @param count - Number of IDs to generate
+/// @returns Array of 64-bit unique time-sorted identifiers
+/// @example SELECT unnest(`snowid_generate_batch`(1, 1000));
+#[pg_extern]
+fn snowid_generate_batch_int(table_id: i32, count: i32) -> Vec<i64> {
+    if table_id <= 0 {
+        error!("Table ID must be a positive number");
+    }
+
+    let count = validate_batch_count(count);
+    let mut ids = vec![0_u64; count];
+    with_table_generator(table_id, |sid| {
+        sid.generate_batch(&mut ids);
+    });
+    ids.into_iter().map(|id| id.try_into().unwrap()).collect()
+}
+
+#[pg_extern]
+fn snowid_try_generate_batch(table_id: pg_sys::Oid, count: i32) -> Vec<i64> {
+    snowid_try_generate_batch_int(table_id.to_u32().try_into().unwrap(), count)
+}
+
+/// Tries to generate a batch of unique `SnowID`s without logical timestamp advancement
+///
+/// Returns as many IDs as can be reserved immediately from the wall-clock
+/// millisecond. The returned array can contain fewer than `count` IDs.
+///
+/// @param `table_id` - Unique positive integer ID for the table
+/// @param count - Maximum number of IDs to generate
+/// @returns Array of immediately available 64-bit unique time-sorted identifiers
+/// @example SELECT unnest(`snowid_try_generate_batch`(1, 1000));
+#[pg_extern]
+fn snowid_try_generate_batch_int(table_id: i32, count: i32) -> Vec<i64> {
+    if table_id <= 0 {
+        error!("Table ID must be a positive number");
+    }
+
+    let count = validate_batch_count(count);
+    let mut ids = vec![0_u64; count];
+    let written = with_table_generator(table_id, |sid| sid.try_generate_batch(&mut ids));
+    ids.truncate(written);
+    ids.into_iter().map(|id| id.try_into().unwrap()).collect()
+}
+
+#[pg_extern]
 fn snowid_generate_base62(table_id: pg_sys::Oid) -> String {
     snowid_generate_base62_int(table_id.to_u32().try_into().unwrap())
 }
@@ -102,6 +181,38 @@ fn snowid_generate_base62_int(table_id: i32) -> String {
     with_table_generator(table_id, SnowID::generate_base62)
 }
 
+#[pg_extern]
+fn snowid_try_generate_base62(table_id: pg_sys::Oid) -> Option<String> {
+    snowid_try_generate_base62_int(table_id.to_u32().try_into().unwrap())
+}
+
+/// Tries to generate a base62-encoded `SnowID` without logical timestamp advancement
+///
+/// Returns `NULL` instead of advancing the logical timestamp when an ID cannot
+/// be generated immediately from wall-clock time.
+///
+/// @param `table_id` - Unique positive integer ID for the table
+/// @returns base62-encoded unique time-sorted identifier, or NULL when unavailable immediately
+/// @example SELECT `snowid_try_generate_base62`(1);
+#[pg_extern]
+fn snowid_try_generate_base62_int(table_id: i32) -> Option<String> {
+    if table_id <= 0 {
+        error!("Table ID must be a positive number");
+    }
+
+    with_table_generator(table_id, |sid| sid.try_generate().ok().map(base62::encode))
+}
+
+fn validate_batch_count(count: i32) -> usize {
+    if count < 0 {
+        error!("Batch count must be non-negative");
+    }
+    if count > MAX_BATCH_SIZE {
+        error!("Batch count must not exceed {}", MAX_BATCH_SIZE);
+    }
+    usize::try_from(count).unwrap()
+}
+
 /// Helper function to create a generator for a table
 fn create_generator_for_table(generators: &mut FnvIndexMap<i32, SharedSnowID, MAX_TABLES>, table_id: i32) {
     let node_id = NODE_ID.get().load(Ordering::Relaxed);
@@ -116,7 +227,7 @@ fn create_generator_for_table(generators: &mut FnvIndexMap<i32, SharedSnowID, MA
 
 /// Runs the provided function with a generator for the given table id.
 /// Creates the generator if it doesn't exist using a double-checked locking pattern.
-fn with_table_generator<R>(table_id: i32, f: impl Fn(&SnowID) -> R) -> R {
+fn with_table_generator<R>(table_id: i32, mut f: impl FnMut(&SnowID) -> R) -> R {
     // Fast path under shared lock
     let generators_shared = GENERATORS.share();
     if let Some(generator) = generators_shared.get(&table_id) {
