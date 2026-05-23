@@ -7,6 +7,10 @@
 * SnowID 3.0.0: `generate()` now uses logical timestamp generation by default and always returns an ID instead of waiting for the next millisecond when the sequence range is exhausted. This significantly improves performance under high load.
 * expose SnowID 3.0 non-blocking `try_generate` and batch generation APIs for PostgreSQL callers.
 
+### Bug Fixes
+
+* initialize the documented default node ID explicitly and require custom node IDs to be set before generators are created.
+
 ## [2.4.0](https://github.com/rixlhq/snowid-postgres/compare/v2.3.8...v2.4.0) (2026-05-21)
 
 
