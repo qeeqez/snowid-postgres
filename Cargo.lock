@@ -944,7 +944,7 @@ dependencies = [
 
 [[package]]
 name = "pg_snowid"
-version = "2.4.0"
+version = "3.0.0"
 dependencies = [
  "heapless",
  "pgrx",
@@ -1442,9 +1442,9 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "snowid"
-version = "2.1.0"
+version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e83e986b197ecd687acbdc58a0416c11b9d3b83aa385969236b3c6994448a4a8"
+checksum = "e1712b3993dda5eaa0c6d79e9bbf757142a44bd4babdef597b3488d5eef07621"
 dependencies = [
  "base62",
 ]
