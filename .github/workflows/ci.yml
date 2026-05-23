@@ -27,25 +27,15 @@ jobs:
         check:
           - name: 🎨 Format
             command: cargo fmt --all -- --check
-            requires-pgrx: false
           - name: 🔎 Lint
             command: cargo clippy --profile release -- -D warnings
-            requires-pgrx: true
           - name: 🧪 Test
             command: cargo pgrx test pg18 --profile release
-            requires-pgrx: true
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v6
 
-      - name: 🦀 Setup Rust
-        if: ${{ !matrix.check.requires-pgrx }}
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-
       - name: 🚀 Setup PGRX
-        if: ${{ matrix.check.requires-pgrx }}
         uses: ./.github/actions/setup-pgrx
         with:
           pg-major: 18
