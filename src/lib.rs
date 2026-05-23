@@ -65,6 +65,10 @@ fn snowid_generate(table_id: pg_sys::Oid) -> i64 {
 
 /// Generates unique `SnowID` for given table
 ///
+/// Uses SnowID's default logical timestamp generation. When the current
+/// millisecond's sequence range is exhausted, generation advances the timestamp
+/// component instead of waiting for the next wall-clock millisecond.
+///
 /// @param `table_id` - Unique positive integer ID for the table
 /// @returns 64-bit unique time-sorted identifier
 /// @example CREATE TABLE users (id bigint PRIMARY KEY DEFAULT `snowid_generate`(1));
@@ -83,6 +87,8 @@ fn snowid_generate_base62(table_id: pg_sys::Oid) -> String {
 }
 
 /// Generates unique base62-encoded `SnowID` for given table
+///
+/// Uses the same logical timestamp generation behavior as `snowid_generate`.
 ///
 /// @param `table_id` - Unique positive integer ID for the table
 /// @returns base62-encoded unique time-sorted identifier (VARCHAR(11))
