@@ -87,13 +87,16 @@ jobs:
           path: ~/.cargo/bin/cargo-pgrx
           key: cargo-pgrx-${{ runner.os }}-${{ runner.arch }}-${{ steps.pgrx_version.outputs.value }}
 
-      - name: 🚀 Initialize PGRX
+      - name: 🚀 Install cargo-pgrx
         run: |
           PGRX_VER="${{ steps.pgrx_version.outputs.value }}"
           INSTALLED_PGRX_VER="$(cargo-pgrx --version 2>/dev/null | awk '{print $2}' || true)"
           if [ "$INSTALLED_PGRX_VER" != "$PGRX_VER" ]; then
             cargo install cargo-pgrx --version "$PGRX_VER" --locked
           fi
+
+      - name: 🚀 Initialize PGRX
+        run: |
           cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
 
       - name: 🔎 Lint (Clippy)
@@ -134,7 +137,7 @@ jobs:
 
   build_and_push:
     name: 🐳 Build and Publish
-    if: ${{ github.event_name == 'workflow_call' && inputs.publish_images }}
+    if: ${{ inputs.publish_images }}
     needs: [fmt, compile]
     runs-on: ubuntu-latest
     strategy:
