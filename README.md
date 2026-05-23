@@ -127,6 +127,22 @@ SELECT snowid_get_timestamp_base62('2qPfVQh7Jw9');
 SELECT snowid_stats();
 ```
 
+### PostgreSQL Functions
+
+| Function | Returns | Description |
+| --- | --- | --- |
+| `snowid_set_node(node smallint)` | `void` | Sets the node ID for this PostgreSQL instance. |
+| `snowid_get_node()` | `smallint` | Returns the current node ID. |
+| `snowid_generate(table_id oid)` | `bigint` | Generates one logical timestamp SnowID. |
+| `snowid_generate_base62(table_id oid)` | `text` | Generates one logical timestamp SnowID encoded as Base62. |
+| `snowid_try_generate(table_id oid)` | `bigint` or `NULL` | Generates one ID only when available without logical timestamp advancement. |
+| `snowid_try_generate_base62(table_id oid)` | `text` or `NULL` | Generates one Base62 ID only when available without logical timestamp advancement. |
+| `snowid_generate_batch(table_id oid, count int)` | `bigint[]` | Generates `count` IDs with logical batch reservation. |
+| `snowid_try_generate_batch(table_id oid, count int)` | `bigint[]` | Returns only IDs immediately available without logical timestamp advancement. |
+| `snowid_get_timestamp(id bigint)` | `bigint` | Extracts the timestamp component from a numeric SnowID. |
+| `snowid_get_timestamp_base62(encoded_id text)` | `bigint` | Extracts the timestamp component from a Base62 SnowID. |
+| `snowid_stats()` | `text` | Returns generator and node statistics. |
+
 ### High-Load Generation Behavior
 
 `pg_snowid` uses SnowID 3.0's default logical timestamp generation through `snowid_generate(...)` and `snowid_generate_base62(...)`.
