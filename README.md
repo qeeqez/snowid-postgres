@@ -5,7 +5,7 @@
 > A PostgreSQL extension for generating Snowflake-like IDs using [snowid](https://crates.io/crates/snowid) Rust library.
 
 **Generate 64-bit unique identifiers in PostgreSQL that are:**
-- ⚡️ Fast (~244ns per ID)
+- ⚡️ Fast with SnowID 3.0 logical timestamp generation
 - 📈 Time-sorted
 - 🔄 Monotonic
 - 🔒 Thread-safe
@@ -38,15 +38,15 @@ Example: "2qPfVQh7Jw9"
 <details>
 <summary><b>Docker Image</b></summary>
 
-Use our pre-built PostgreSQL 17 image with SnowID extension:
+Use our pre-built PostgreSQL 18 image with SnowID extension:
 
 ```bash
-docker pull rixl/snowid-pg:17
-docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 qeeqez/snowid-pg:17
+docker pull rixl/snowid-pg:18
+docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 rixl/snowid-pg:18
 ```
 
 The image comes with:
-- PostgreSQL 17
+- PostgreSQL 18
 - SnowID extension installed
 - `shared_preload_libraries` configured
 </details>
@@ -126,6 +126,14 @@ SELECT snowid_get_timestamp_base62('2qPfVQh7Jw9');
 -- View SnowID statistics
 SELECT snowid_stats();
 ```
+
+### High-Load Generation Behavior
+
+`pg_snowid` uses SnowID 3.0's default logical timestamp generation through `snowid_generate(...)` and `snowid_generate_base62(...)`.
+
+When one generator exhausts the current millisecond's sequence range, it no longer waits for the next wall-clock millisecond. Instead, it advances the timestamp component logically and returns an ID immediately. IDs remain unique, time-sorted, and monotonic for that generator, while the embedded timestamp can run ahead of wall-clock time during sustained overload.
+
+This removes the previous hot-path wait under bursty write load and can significantly improve generation throughput. Keep table IDs distributed across tables or shards when possible, because each table ID maps to its own shared generator.
 
 ## 🔧 Development
 
