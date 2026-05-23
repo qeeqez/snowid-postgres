@@ -21,6 +21,7 @@ runs:
       uses: Swatinem/rust-cache@v2
       with:
         key: ${{ inputs.cache-key }}
+        cache-on-failure: true
 
     - name: Resolve PGRX Version
       id: pgrx_version

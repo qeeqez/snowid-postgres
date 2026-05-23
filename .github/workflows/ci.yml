@@ -26,10 +26,13 @@ jobs:
       matrix:
         check:
           - name: 🎨 Format
+            cache-key: amd64-format-pg18-v5
             command: cargo fmt --all -- --check
           - name: 🔎 Lint
+            cache-key: amd64-lint-pg18-v5
             command: cargo clippy --profile release -- -D warnings
           - name: 🧪 Test
+            cache-key: amd64-test-pg18-v5
             command: cargo pgrx test pg18 --profile release
     steps:
       - name: 📥 Checkout
@@ -39,7 +42,7 @@ jobs:
         uses: ./.github/actions/setup-pgrx
         with:
           pg-major: 18
-          cache-key: amd64-pg18-v4
+          cache-key: ${{ matrix.check.cache-key }}
 
       - name: ${{ matrix.check.name }}
         run: ${{ matrix.check.command }}
@@ -60,7 +63,7 @@ jobs:
         uses: ./.github/actions/setup-pgrx
         with:
           pg-major: ${{ matrix.pg_major }}
-          cache-key: ${{ matrix.arch }}-pg${{ matrix.pg_major }}-v4
+          cache-key: ${{ matrix.arch }}-package-pg${{ matrix.pg_major }}-v5
 
       - name: 🔨 Build Extension
         run: cargo pgrx package --profile release
