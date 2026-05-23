@@ -23,7 +23,13 @@ runs:
     - name: Resolve PGRX Version
       id: pgrx_version
       shell: bash
-      run: echo "value=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '\"' -f 2)" >> "$GITHUB_OUTPUT"
+      run: |
+        PGRX_VER="$(sed -n 's/^pgrx[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$GITHUB_WORKSPACE/Cargo.toml" | head -n1)"
+        if [ -z "$PGRX_VER" ]; then
+          echo "Could not resolve pgrx dependency version from $GITHUB_WORKSPACE/Cargo.toml" >&2
+          exit 1
+        fi
+        echo "value=$PGRX_VER" >> "$GITHUB_OUTPUT"
 
     - name: Setup PostgreSQL Repository
       shell: bash
