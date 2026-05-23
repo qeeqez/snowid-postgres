@@ -16,7 +16,6 @@ concurrency:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   fmt:
@@ -34,22 +33,43 @@ jobs:
       - name: 🎨 Run cargo fmt
         run: cargo fmt --all -- --check
 
-      - name: 🛑 Cancel Workflow on Failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            console.log('Canceling workflow due to format failure...');
-            await github.rest.actions.cancelWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.runId
-            });
+  lint:
+    name: 🔎 Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v6
 
-  compile:
-    name: ⚙️ Compile (${{ matrix.arch }})
+      - name: 🚀 Setup PGRX
+        uses: ./.github/actions/setup-pgrx
+        with:
+          pg-major: 18
+          cache-key: amd64-pg18-v4
+
+      - name: 🔎 Run Clippy
+        run: cargo clippy --profile release -- -D warnings
+
+  test:
+    name: 🧪 Test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v6
+
+      - name: 🚀 Setup PGRX
+        uses: ./.github/actions/setup-pgrx
+        with:
+          pg-major: 18
+          cache-key: amd64-pg18-v4
+
+      - name: 🧪 Run PGRX Tests
+        run: cargo pgrx test pg18 --profile release
+
+  package:
+    name: 📦 Package (${{ matrix.arch }})
     runs-on: ${{ matrix.arch == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
+      fail-fast: false
       matrix:
         pg_major: [ 18 ]
         arch: [ amd64, arm64 ]
@@ -57,55 +77,11 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v6
 
-      - name: 🦀 Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: ⚡️ Rust Cache
-        uses: Swatinem/rust-cache@v2
+      - name: 🚀 Setup PGRX
+        uses: ./.github/actions/setup-pgrx
         with:
-          key: ${{ matrix.arch }}-${{ matrix.pg_major }}-v3
-
-      - name: 🔖 Resolve PGRX Version
-        id: pgrx_version
-        run: echo "value=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '\"' -f 2)" >> "$GITHUB_OUTPUT"
-
-      - name: 🐘 Setup PostgreSQL Repository
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-common ca-certificates --no-install-recommends
-          sudo YES=1 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
-
-      - name: 📦 Cache & Install System Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
-        with:
-          packages: postgresql-${{ matrix.pg_major }} postgresql-server-dev-${{ matrix.pg_major }} clang gcc make pkg-config
-          version: pg${{ matrix.pg_major }}-${{ matrix.arch }}-v1
-
-      - name: ⚡️ Cache cargo-pgrx Binary
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/cargo-pgrx
-          key: cargo-pgrx-${{ runner.os }}-${{ runner.arch }}-${{ steps.pgrx_version.outputs.value }}
-
-      - name: 🚀 Install cargo-pgrx
-        run: |
-          PGRX_VER="${{ steps.pgrx_version.outputs.value }}"
-          INSTALLED_PGRX_VER="$(cargo-pgrx --version 2>/dev/null | awk '{print $2}' || true)"
-          if [ "$INSTALLED_PGRX_VER" != "$PGRX_VER" ]; then
-            cargo install cargo-pgrx --version "$PGRX_VER" --locked
-          fi
-
-      - name: 🚀 Initialize PGRX
-        run: |
-          cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
-
-      - name: 🔎 Lint (Clippy)
-        if: ${{ matrix.arch == 'amd64' }}
-        run: cargo clippy --profile release -- -D warnings
-
-      - name: 🧪 Run Tests
-        if: ${{ matrix.arch == 'amd64' }}
-        run: cargo pgrx test pg${{ matrix.pg_major }} --profile release
+          pg-major: ${{ matrix.pg_major }}
+          cache-key: ${{ matrix.arch }}-pg${{ matrix.pg_major }}-v4
 
       - name: 🔨 Build Extension
         run: cargo pgrx package --profile release
@@ -123,24 +99,13 @@ jobs:
           path: target/release/pg_snowid-pg${{ matrix.pg_major }}/
           retention-days: 1
 
-      - name: 🛑 Cancel Workflow on Failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            console.log('Canceling workflow due to compilation failure...');
-            await github.rest.actions.cancelWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.runId
-            });
-
   build_and_push:
     name: 🐳 Build and Publish
     if: ${{ inputs.publish_images }}
-    needs: [fmt, compile]
+    needs: [fmt, lint, test, package]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         pg_provider: [ pg, cloudnative-pg ]
         pg_version:
