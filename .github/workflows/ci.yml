@@ -65,6 +65,10 @@ jobs:
         with:
           key: ${{ matrix.arch }}-${{ matrix.pg_major }}-v3
 
+      - name: 🔖 Resolve PGRX Version
+        id: pgrx_version
+        run: echo "value=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '\"' -f 2)" >> "$GITHUB_OUTPUT"
+
       - name: 🐘 Setup PostgreSQL Repository
         run: |
           sudo apt-get update
@@ -77,22 +81,34 @@ jobs:
           packages: postgresql-${{ matrix.pg_major }} postgresql-server-dev-${{ matrix.pg_major }} clang gcc make pkg-config
           version: pg${{ matrix.pg_major }}-${{ matrix.arch }}-v1
 
+      - name: ⚡️ Cache cargo-pgrx Binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-pgrx
+          key: cargo-pgrx-${{ runner.os }}-${{ runner.arch }}-${{ steps.pgrx_version.outputs.value }}
+
       - name: 🚀 Initialize PGRX
         run: |
-          PGRX_VER=$(grep -m 1 '^pgrx = ' Cargo.toml | cut -d '"' -f 2)
-          cargo install cargo-pgrx --version $PGRX_VER --locked
+          PGRX_VER="${{ steps.pgrx_version.outputs.value }}"
+          INSTALLED_PGRX_VER="$(cargo-pgrx --version 2>/dev/null | awk '{print $2}' || true)"
+          if [ "$INSTALLED_PGRX_VER" != "$PGRX_VER" ]; then
+            cargo install cargo-pgrx --version "$PGRX_VER" --locked
+          fi
           cargo pgrx init --pg${{ matrix.pg_major }} $(which pg_config)
 
       - name: 🔎 Lint (Clippy)
+        if: ${{ matrix.arch == 'amd64' }}
         run: cargo clippy --profile release -- -D warnings
 
       - name: 🧪 Run Tests
+        if: ${{ matrix.arch == 'amd64' }}
         run: cargo pgrx test pg${{ matrix.pg_major }} --profile release
 
       - name: 🔨 Build Extension
         run: cargo pgrx package --profile release
 
       - name: 🧪 Test Packaged SQL Files
+        if: ${{ matrix.arch == 'amd64' }}
         env:
           PG_SNOWID_PACKAGE_DIR: target/release/pg_snowid-pg${{ matrix.pg_major }}
         run: cargo test --test packaged_sql_files -- --ignored --nocapture
@@ -118,6 +134,7 @@ jobs:
 
   build_and_push:
     name: 🐳 Build and Publish
+    if: ${{ github.event_name == 'workflow_call' && inputs.publish_images }}
     needs: [fmt, compile]
     runs-on: ubuntu-latest
     strategy:
