@@ -1,5 +1,5 @@
 ARG PG_MAJOR=18
-ARG PG_MINOR=1
+ARG PG_MINOR=4
 ARG PGRX=0.18.0
 
 FROM postgres:${PG_MAJOR}.${PG_MINOR}-trixie AS builder
