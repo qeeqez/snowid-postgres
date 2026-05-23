@@ -135,6 +135,20 @@ When one generator exhausts the current millisecond's sequence range, it no long
 
 This removes the previous hot-path wait under bursty write load and can significantly improve generation throughput. Keep table IDs distributed across tables or shards when possible, because each table ID maps to its own shared generator.
 
+If you need wall-clock-only generation, use the `try_*` functions. They return `NULL` instead of advancing logical time when the current millisecond is exhausted or when the generator is already ahead of wall-clock time:
+
+```sql
+SELECT snowid_try_generate(1);
+SELECT snowid_try_generate_base62(1);
+```
+
+For bulk inserts or reservation-heavy paths, use batch generation. `snowid_generate_batch` always returns the requested number of IDs and may advance logical time. `snowid_try_generate_batch` returns only the IDs that can be reserved immediately without logical timestamp advancement.
+
+```sql
+SELECT unnest(snowid_generate_batch(1, 1000));
+SELECT unnest(snowid_try_generate_batch(1, 1000));
+```
+
 ## 🔧 Development
 
 ```bash
