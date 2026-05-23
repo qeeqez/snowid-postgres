@@ -40,7 +40,6 @@ jobs:
         with:
           pg-major: 18
           cache-key: amd64-pg18-v4
-          pgrx-version: 0.18.0
 
       - name: ${{ matrix.check.name }}
         run: ${{ matrix.check.command }}
@@ -62,7 +61,6 @@ jobs:
         with:
           pg-major: ${{ matrix.pg_major }}
           cache-key: ${{ matrix.arch }}-pg${{ matrix.pg_major }}-v4
-          pgrx-version: 0.18.0
 
       - name: 🔨 Build Extension
         run: cargo pgrx package --profile release
