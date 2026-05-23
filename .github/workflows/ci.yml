@@ -25,14 +25,14 @@ jobs:
       fail-fast: false
       matrix:
         check:
-          - name: 🎨 Format
-            cache-key: amd64-format-pg18-v5
+          - id: format
+            name: 🎨 Format
             command: cargo fmt --all -- --check
-          - name: 🔎 Lint
-            cache-key: amd64-lint-pg18-v5
+          - id: lint
+            name: 🔎 Lint
             command: cargo clippy --profile release -- -D warnings
-          - name: 🧪 Test
-            cache-key: amd64-test-pg18-v5
+          - id: test
+            name: 🧪 Test
             command: cargo pgrx test pg18 --profile release
     steps:
       - name: 📥 Checkout
@@ -42,7 +42,7 @@ jobs:
         uses: ./.github/actions/setup-pgrx
         with:
           pg-major: 18
-          cache-key: ${{ matrix.check.cache-key }}
+          cache-key: validate-${{ matrix.check.id }}-pg18-v5
 
       - name: ${{ matrix.check.name }}
         run: ${{ matrix.check.command }}
