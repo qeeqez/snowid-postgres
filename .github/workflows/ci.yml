@@ -33,9 +33,17 @@ jobs:
       - name: 🎨 Run cargo fmt
         run: cargo fmt --all -- --check
 
-  lint:
-    name: 🔎 Lint
+  validate:
+    name: ${{ matrix.check.name }}
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        check:
+          - name: 🔎 Lint
+            command: cargo clippy --profile release -- -D warnings
+          - name: 🧪 Test
+            command: cargo pgrx test pg18 --profile release
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v6
@@ -46,24 +54,8 @@ jobs:
           pg-major: 18
           cache-key: amd64-pg18-v4
 
-      - name: 🔎 Run Clippy
-        run: cargo clippy --profile release -- -D warnings
-
-  test:
-    name: 🧪 Test
-    runs-on: ubuntu-24.04
-    steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v6
-
-      - name: 🚀 Setup PGRX
-        uses: ./.github/actions/setup-pgrx
-        with:
-          pg-major: 18
-          cache-key: amd64-pg18-v4
-
-      - name: 🧪 Run PGRX Tests
-        run: cargo pgrx test pg18 --profile release
+      - name: ${{ matrix.check.name }}
+        run: ${{ matrix.check.command }}
 
   package:
     name: 📦 Package (${{ matrix.arch }})
@@ -102,7 +94,7 @@ jobs:
   build_and_push:
     name: 🐳 Build and Publish
     if: ${{ inputs.publish_images }}
-    needs: [fmt, lint, test, package]
+    needs: [fmt, validate, package]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
