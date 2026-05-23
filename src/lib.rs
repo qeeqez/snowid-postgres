@@ -59,11 +59,6 @@ fn snowid_get_node() -> i16 {
     NODE_ID.get().load(Ordering::Relaxed)
 }
 
-#[pg_extern]
-fn snowid_generate(table_id: pg_sys::Oid) -> i64 {
-    snowid_generate_int(table_id.to_u32().try_into().unwrap())
-}
-
 /// Generates unique `SnowID` for given table
 ///
 /// Uses SnowID's default logical timestamp generation. When the current
@@ -74,17 +69,9 @@ fn snowid_generate(table_id: pg_sys::Oid) -> i64 {
 /// @returns 64-bit unique time-sorted identifier
 /// @example CREATE TABLE users (id bigint PRIMARY KEY DEFAULT `snowid_generate`(1));
 #[pg_extern]
-fn snowid_generate_int(table_id: i32) -> i64 {
-    if table_id <= 0 {
-        error!("Table ID must be a positive number");
-    }
-
+fn snowid_generate(table_id: pg_sys::Oid) -> i64 {
+    let table_id = table_oid_to_id(table_id);
     with_table_generator(table_id, |sid| sid.generate().try_into().unwrap())
-}
-
-#[pg_extern]
-fn snowid_try_generate(table_id: pg_sys::Oid) -> Option<i64> {
-    snowid_try_generate_int(table_id.to_u32().try_into().unwrap())
 }
 
 /// Tries to generate a unique `SnowID` for given table without logical timestamp advancement
@@ -97,17 +84,9 @@ fn snowid_try_generate(table_id: pg_sys::Oid) -> Option<i64> {
 /// @returns 64-bit unique time-sorted identifier, or NULL when unavailable immediately
 /// @example SELECT `snowid_try_generate`(1);
 #[pg_extern]
-fn snowid_try_generate_int(table_id: i32) -> Option<i64> {
-    if table_id <= 0 {
-        error!("Table ID must be a positive number");
-    }
-
+fn snowid_try_generate(table_id: pg_sys::Oid) -> Option<i64> {
+    let table_id = table_oid_to_id(table_id);
     with_table_generator(table_id, |sid| sid.try_generate().ok().map(|id| id.try_into().unwrap()))
-}
-
-#[pg_extern]
-fn snowid_generate_batch(table_id: pg_sys::Oid, count: i32) -> Vec<i64> {
-    snowid_generate_batch_int(table_id.to_u32().try_into().unwrap(), count)
 }
 
 /// Generates a batch of unique `SnowID`s for given table
@@ -120,22 +99,14 @@ fn snowid_generate_batch(table_id: pg_sys::Oid, count: i32) -> Vec<i64> {
 /// @returns Array of 64-bit unique time-sorted identifiers
 /// @example SELECT unnest(`snowid_generate_batch`(1, 1000));
 #[pg_extern]
-fn snowid_generate_batch_int(table_id: i32, count: i32) -> Vec<i64> {
-    if table_id <= 0 {
-        error!("Table ID must be a positive number");
-    }
-
+fn snowid_generate_batch(table_id: pg_sys::Oid, count: i32) -> Vec<i64> {
+    let table_id = table_oid_to_id(table_id);
     let count = validate_batch_count(count);
     let mut ids = vec![0_u64; count];
     with_table_generator(table_id, |sid| {
         sid.generate_batch(&mut ids);
     });
     ids.into_iter().map(|id| id.try_into().unwrap()).collect()
-}
-
-#[pg_extern]
-fn snowid_try_generate_batch(table_id: pg_sys::Oid, count: i32) -> Vec<i64> {
-    snowid_try_generate_batch_int(table_id.to_u32().try_into().unwrap(), count)
 }
 
 /// Tries to generate a batch of unique `SnowID`s without logical timestamp advancement
@@ -148,21 +119,13 @@ fn snowid_try_generate_batch(table_id: pg_sys::Oid, count: i32) -> Vec<i64> {
 /// @returns Array of immediately available 64-bit unique time-sorted identifiers
 /// @example SELECT unnest(`snowid_try_generate_batch`(1, 1000));
 #[pg_extern]
-fn snowid_try_generate_batch_int(table_id: i32, count: i32) -> Vec<i64> {
-    if table_id <= 0 {
-        error!("Table ID must be a positive number");
-    }
-
+fn snowid_try_generate_batch(table_id: pg_sys::Oid, count: i32) -> Vec<i64> {
+    let table_id = table_oid_to_id(table_id);
     let count = validate_batch_count(count);
     let mut ids = vec![0_u64; count];
     let written = with_table_generator(table_id, |sid| sid.try_generate_batch(&mut ids));
     ids.truncate(written);
     ids.into_iter().map(|id| id.try_into().unwrap()).collect()
-}
-
-#[pg_extern]
-fn snowid_generate_base62(table_id: pg_sys::Oid) -> String {
-    snowid_generate_base62_int(table_id.to_u32().try_into().unwrap())
 }
 
 /// Generates unique base62-encoded `SnowID` for given table
@@ -173,17 +136,9 @@ fn snowid_generate_base62(table_id: pg_sys::Oid) -> String {
 /// @returns base62-encoded unique time-sorted identifier (VARCHAR(11))
 /// @example CREATE TABLE users (id VARCHAR(11) PRIMARY KEY DEFAULT `snowid_generate_base62`(1));
 #[pg_extern]
-fn snowid_generate_base62_int(table_id: i32) -> String {
-    if table_id <= 0 {
-        error!("Table ID must be a positive number");
-    }
-
+fn snowid_generate_base62(table_id: pg_sys::Oid) -> String {
+    let table_id = table_oid_to_id(table_id);
     with_table_generator(table_id, SnowID::generate_base62)
-}
-
-#[pg_extern]
-fn snowid_try_generate_base62(table_id: pg_sys::Oid) -> Option<String> {
-    snowid_try_generate_base62_int(table_id.to_u32().try_into().unwrap())
 }
 
 /// Tries to generate a base62-encoded `SnowID` without logical timestamp advancement
@@ -195,12 +150,17 @@ fn snowid_try_generate_base62(table_id: pg_sys::Oid) -> Option<String> {
 /// @returns base62-encoded unique time-sorted identifier, or NULL when unavailable immediately
 /// @example SELECT `snowid_try_generate_base62`(1);
 #[pg_extern]
-fn snowid_try_generate_base62_int(table_id: i32) -> Option<String> {
+fn snowid_try_generate_base62(table_id: pg_sys::Oid) -> Option<String> {
+    let table_id = table_oid_to_id(table_id);
+    with_table_generator(table_id, |sid| sid.try_generate().ok().map(base62::encode))
+}
+
+fn table_oid_to_id(table_id: pg_sys::Oid) -> i32 {
+    let table_id = table_id.to_u32().try_into().unwrap();
     if table_id <= 0 {
         error!("Table ID must be a positive number");
     }
-
-    with_table_generator(table_id, |sid| sid.try_generate().ok().map(base62::encode))
+    table_id
 }
 
 fn validate_batch_count(count: i32) -> usize {
