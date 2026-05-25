@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.0.0](https://github.com/rixlhq/snowid-postgres/compare/v2.4.0...v3.0.0) (2026-05-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* Redundant _int SQL helper functions are no longer exported; use the OID-based public snowid_* functions instead.
+* SnowID generation semantics now use logical timestamp advancement under per-millisecond sequence exhaustion instead of waiting for wall-clock time.
+
+### Features
+
+* clean up PostgreSQL function surface ([a138c89](https://github.com/rixlhq/snowid-postgres/commit/a138c89a62ccda68cfa8999c4bf3530e9137bd4a))
+* document SnowID 3.0 logical generation ([0bdb695](https://github.com/rixlhq/snowid-postgres/commit/0bdb6959140e823ca2041ca5829f13b7960abf07))
+* expose SnowID 3.0 generation APIs ([bc71641](https://github.com/rixlhq/snowid-postgres/commit/bc71641b9f26684546bf68ee2e7f68d91ae8c8f7))
+* SnowID 3.0.0 ([a3c293b](https://github.com/rixlhq/snowid-postgres/commit/a3c293b1647ea11cd20100c8960b6de464338ac6))
+* support postgres 18.4 ([f2ff9eb](https://github.com/rixlhq/snowid-postgres/commit/f2ff9ebf08263e401dbaf465d65c76c35f844bdd))
+
+
+### Bug Fixes
+
+* clarify node id initialization ([7cdf57f](https://github.com/rixlhq/snowid-postgres/commit/7cdf57fb3ba58ff2e607531017284f6d8d3c52e1))
+
 ## [3.0.0](https://github.com/rixlhq/snowid-postgres/compare/v2.4.0...v3.0.0) (2026-05-23)
 
 ### Features
