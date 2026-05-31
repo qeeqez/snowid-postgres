@@ -67,7 +67,7 @@ fn snowid_get_node() -> i16 {
 
 /// Generates unique `SnowID` for given table
 ///
-/// Uses SnowID's default logical timestamp generation. When the current
+/// Uses `SnowID`'s default logical timestamp generation. When the current
 /// millisecond's sequence range is exhausted, generation advances the timestamp
 /// component instead of waiting for the next wall-clock millisecond.
 ///
@@ -97,7 +97,7 @@ fn snowid_try_generate(table_id: pg_sys::Oid) -> Option<i64> {
 
 /// Generates a batch of unique `SnowID`s for given table
 ///
-/// Uses SnowID's logical batch reservation. It always returns `count` IDs and
+/// Uses `SnowID`'s logical batch reservation. It always returns `count` IDs and
 /// may advance timestamp components instead of waiting under sustained load.
 ///
 /// @param `table_id` - Unique positive integer ID for the table
