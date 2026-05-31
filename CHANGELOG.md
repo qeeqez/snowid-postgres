@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/rixlhq/snowid-postgres/compare/v3.0.0...v3.0.1) (2026-05-31)
+
+
+### Bug Fixes
+
+* **snowid:** more performant snowid compilation ([9de3c27](https://github.com/rixlhq/snowid-postgres/commit/9de3c2703d071a7660866116af5e7e622c880343))
+
 ## [3.0.0](https://github.com/rixlhq/snowid-postgres/compare/v2.4.0...v3.0.0) (2026-05-25)
 
 
