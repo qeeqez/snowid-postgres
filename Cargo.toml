@@ -29,7 +29,7 @@ pg_test = []
 
 [dependencies]
 pgrx = "0.18.0"
-snowid = "3.0.0"
+snowid = "3.0.1"
 heapless = "0.9.3"
 
 [dev-dependencies]
