@@ -24,7 +24,7 @@ jobs:
 
       - name: Checkout PR branch
         if: ${{ steps.release.outputs.prs_created == 'true' }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ fromJSON(steps.release.outputs.prs)[0].headBranchName }}
 
