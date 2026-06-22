@@ -36,7 +36,7 @@ jobs:
             command: cargo pgrx test pg18 --profile release
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 🚀 Setup PGRX
         uses: ./.github/actions/setup-pgrx
@@ -57,7 +57,7 @@ jobs:
         arch: [ amd64, arm64 ]
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 🚀 Setup PGRX
         uses: ./.github/actions/setup-pgrx
@@ -98,7 +98,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📥 Download AMD64 Artifact
         uses: actions/download-artifact@v8
