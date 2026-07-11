@@ -32,7 +32,7 @@ fn packaged_build_contains_versioned_sql_files() {
         assert!(extension_dir.join(file).is_file(), "package is missing SQL file from sql/: {file}");
     }
 
-    let default_version = default_version_from_control(Path::new("pg_snowid.control"));
+    let default_version = default_version_from_control(&extension_dir.join(format!("{EXTENSION_NAME}.control")));
     let install_sql = format!("{EXTENSION_NAME}--{default_version}.sql");
     assert!(extension_dir.join(&install_sql).is_file(), "package is missing generated install SQL file: {install_sql}");
 }
