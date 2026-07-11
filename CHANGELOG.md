@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/rixlhq/snowid-postgres/compare/v3.0.1...v3.1.0) (2026-07-11)
+
+
+### Features
+
+* **deps:** upgrade pgrx to 0.19.1 ([d98be96](https://github.com/rixlhq/snowid-postgres/commit/d98be96c2ed257d8b1a7c503d6ecbe23aa461d6a))
+
 ## [3.0.1](https://github.com/rixlhq/snowid-postgres/compare/v3.0.0...v3.0.1) (2026-05-31)
 
 
