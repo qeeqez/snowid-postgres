@@ -19,21 +19,8 @@ permissions:
 
 jobs:
   validate:
-    name: ${{ matrix.check.name }}
+    name: 🧪 Validate
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        check:
-          - id: format
-            name: 🎨 Format
-            command: cargo fmt --all -- --check
-          - id: lint
-            name: 🔎 Lint
-            command: cargo clippy --profile release -- -D warnings
-          - id: test
-            name: 🧪 Test
-            command: cargo pgrx test pg18 --profile release
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v7
@@ -42,10 +29,18 @@ jobs:
         uses: ./.github/actions/setup-pgrx
         with:
           pg-major: 18
-          cache-key: validate-${{ matrix.check.id }}-pg18-v5
+          cache-key: validate-pg18-v5
 
-      - name: ${{ matrix.check.name }}
-        run: ${{ matrix.check.command }}
+      - parallel:
+          - name: 🎨 Format
+            run: cargo fmt --all -- --check
+
+          - name: 🔎 Lint
+            run: cargo clippy --profile release -- -D warnings
+
+          - name: 🧪 Test
+            run: cargo pgrx test pg18 --profile release
+
 
   package:
     name: 📦 Package (${{ matrix.arch }})
