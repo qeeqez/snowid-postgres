@@ -20,7 +20,7 @@ permissions:
 jobs:
   validate:
     name: 🧪 Validate
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v7
@@ -44,7 +44,8 @@ jobs:
 
   package:
     name: 📦 Package (${{ matrix.arch }})
-    runs-on: ${{ matrix.arch == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    runs-on: ${{ matrix.arch == 'amd64' && 'ubuntu-26.04' || 'ubuntu-26.04-arm' }}
+
     strategy:
       fail-fast: false
       matrix:
