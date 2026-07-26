@@ -53,7 +53,13 @@ runs:
           cargo install cargo-pgrx --version "$PGRX_VER" --locked
         fi
 
+    - name: Cache PGRX Data
+      uses: actions/cache@v4
+      with:
+        path: ~/.pgrx
+        key: pgrx-${{ runner.os }}-${{ runner.arch }}-pg${{ inputs.pg-major }}-${{ steps.pgrx_version.outputs.value }}
 
     - name: Initialize PGRX
       shell: bash
       run: cargo pgrx init --pg${{ inputs.pg-major }} "$(which pg_config)"
+

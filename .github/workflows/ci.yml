@@ -41,7 +41,6 @@ jobs:
           - name: 🧪 Test
             run: cargo pgrx test pg18 --profile release
 
-
   package:
     name: 📦 Package (${{ matrix.arch }})
     runs-on: ${{ matrix.arch == 'amd64' && 'ubuntu-26.04' || 'ubuntu-26.04-arm' }}
