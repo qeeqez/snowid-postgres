@@ -44,12 +44,6 @@ runs:
         packages: postgresql-${{ inputs.pg-major }} postgresql-server-dev-${{ inputs.pg-major }} clang gcc make pkg-config
         version: pg${{ inputs.pg-major }}-${{ runner.arch }}-v1
 
-    - name: Cache cargo-pgrx Binary
-      uses: actions/cache@v4
-      with:
-        path: ~/.cargo/bin/cargo-pgrx
-        key: cargo-pgrx-${{ runner.os }}-${{ runner.arch }}-${{ steps.pgrx_version.outputs.value }}
-
     - name: Install cargo-pgrx
       shell: bash
       run: |
@@ -58,6 +52,7 @@ runs:
         if [ "$INSTALLED_PGRX_VER" != "$PGRX_VER" ]; then
           cargo install cargo-pgrx --version "$PGRX_VER" --locked
         fi
+
 
     - name: Initialize PGRX
       shell: bash
