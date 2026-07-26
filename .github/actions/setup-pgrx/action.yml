@@ -54,10 +54,11 @@ runs:
         fi
 
     - name: Cache PGRX Data
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.pgrx
         key: pgrx-${{ runner.os }}-${{ runner.arch }}-pg${{ inputs.pg-major }}-${{ steps.pgrx_version.outputs.value }}
+
 
     - name: Initialize PGRX
       shell: bash
