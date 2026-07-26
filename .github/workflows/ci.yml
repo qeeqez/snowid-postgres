@@ -1,6 +1,8 @@
 name: SnowID Extension
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
   workflow_call:
@@ -9,6 +11,7 @@ on:
         description: "Whether to publish images to Docker Hub"
         type: boolean
         default: false
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
