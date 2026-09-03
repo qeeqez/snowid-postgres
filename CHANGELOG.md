@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.2](https://github.com/rixlhq/snowid-postgres/compare/v3.2.1...v3.2.2) (2026-09-03)
+
+
+### Bug Fixes
+
+* drop non-existent PostgreSQL 18.5 from publish matrix ([1fc7599](https://github.com/rixlhq/snowid-postgres/commit/1fc759901e1acaf9bb58292b3df320cc168ac905))
+
 ## [3.2.1](https://github.com/rixlhq/snowid-postgres/compare/v3.2.0...v3.2.1) (2026-09-03)
 
 
