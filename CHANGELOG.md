@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/rixlhq/snowid-postgres/compare/v3.1.0...v3.2.0) (2026-09-03)
+
+
+### Features
+
+* bump PostgreSQL from 18.4 to 18.6 ([518cd0b](https://github.com/rixlhq/snowid-postgres/commit/518cd0b1b2dac7b3976a27503ce1b4db8060823d))
+
 ## [3.1.0](https://github.com/rixlhq/snowid-postgres/compare/v3.0.1...v3.1.0) (2026-07-11)
 
 
