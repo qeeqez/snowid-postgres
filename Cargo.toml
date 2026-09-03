@@ -28,12 +28,12 @@ pg18 = ["pgrx/pg18", "pgrx-tests/pg18"]
 pg_test = []
 
 [dependencies]
-pgrx = "0.19.1"
+pgrx = "0.19.2"
 snowid = "3.0.1"
 heapless = "0.9.3"
 
 [dev-dependencies]
-pgrx-tests = "0.19.1"
+pgrx-tests = "0.19.2"
 
 [profile.dev]
 panic = "unwind"
