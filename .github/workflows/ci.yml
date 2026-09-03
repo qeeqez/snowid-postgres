@@ -93,7 +93,6 @@ jobs:
           - { major: 18, minor: 2, is_latest: false }
           - { major: 18, minor: 3, is_latest: false }
           - { major: 18, minor: 4, is_latest: false }
-          - { major: 18, minor: 5, is_latest: false }
           - { major: 18, minor: 6, is_latest: true }
 
     steps:
