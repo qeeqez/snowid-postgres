@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.1](https://github.com/rixlhq/snowid-postgres/compare/v3.2.0...v3.2.1) (2026-09-03)
+
+
+### Bug Fixes
+
+* pgrx v0.19.2 ([4aa5955](https://github.com/rixlhq/snowid-postgres/commit/4aa59556f7e5be8bf050514f463bc7842f552161))
+* publish PostgreSQL 18.5 and 18.6 images ([16fce1e](https://github.com/rixlhq/snowid-postgres/commit/16fce1eec95ea696d71365e465f41e725af5c47c))
+
 ## [3.2.0](https://github.com/rixlhq/snowid-postgres/compare/v3.1.0...v3.2.0) (2026-09-03)
 
 
